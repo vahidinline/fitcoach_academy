@@ -7,6 +7,7 @@ import VideoDetails from './components/VideoDetails';
 import VideoRecommendations from './components/VideoRecommendations';
 import CommentsSection from './components/CommentsSection';
 import ProgressTracker from './components/ProgressTracker';
+import SessionQuiz from 'components/quiz';
 
 const TrainingVideoPlayer = () => {
   const { videoId } = useParams();
@@ -32,13 +33,56 @@ const TrainingVideoPlayer = () => {
       // equipment: ['None - Bodyweight Only'],
       rating: 4.8,
       totalRatings: 1247,
+
+      // category: 'HIIT',
       attachments: [
         {
-          url: 'https://backend.fitlinez.com/uploads/fiber.jpg',
-          description: 'فایل فیبر',
+          url: 'https://backend.fitlinez.com/uploads/session05.jpg',
+        },
+        {
+          url: 'https://storage.googleapis.com/backend.fitlinez.com/all/18F8D57F-065F-4951-9C1C-F1E35F5EB24E-export.jpg',
+        },
+        {
+          url: 'https://storage.googleapis.com/backend.fitlinez.com/all/weight%20gain.webp',
         },
       ],
-      // category: 'HIIT',
+      additionalLinks: [
+        {
+          link: 'https://play.google.com/store/apps/details?id=cc.pacer.androidapp&referrer=utm_source%3Dmypacer.com%26utm_campaign%3DWebsite%2520Referrals',
+          name: 'Pacer',
+          os: 'Android',
+          logo: 'https://pbs.twimg.com/profile_images/956363250148433920/iuK2TGYH_400x400.jpg',
+        },
+        {
+          name: 'Pacer',
+          os: 'iOS',
+          link: 'https://itunes.apple.com/app/apple-store/id600446812?mt=8',
+          logo: 'https://pbs.twimg.com/profile_images/956363250148433920/iuK2TGYH_400x400.jpg',
+        },
+      ],
+      quiz: [
+        {
+          question: 'کدام یک از موارد زیر در کالری خروجی وجود ندارد؟ ',
+          options: ['BMR', 'کالری نقصان ', 'Neat'],
+          correctAnswer: 1,
+        },
+        {
+          question: 'میانگین قدم های یک فرد بالغ چقدر هست؟ \n',
+          options: ['1000', '2000', '4000-5000', '8000-10000'],
+          correctAnswer: 3,
+        },
+        {
+          question: 'برای کاهش وزن باید در ….. باشیم \n',
+          options: ['کالری تثبیت\n', 'کالری مازاد\n', 'کالری نقصان\n'],
+          correctAnswer: 2,
+        },
+        {
+          question:
+            'بعد از متابولیسم پایه کدام مورد بیشترین سهم  در کالری خروجی را دارد ؟ \n',
+          options: ['اثر گرمایی غذاها TEF\n', 'ورزش کردن\n', 'پیاده روی کردن'],
+          correctAnswer: 2,
+        },
+      ],
     },
     {
       id: '2',
@@ -54,6 +98,53 @@ const TrainingVideoPlayer = () => {
       rating: 4.6,
       totalRatings: 892,
       //category: 'Strength',
+      attachments: [
+        {
+          description: 'هرم پروتیین',
+          url: 'https://backend.fitlinez.com/uploads/protein01.jpg',
+        },
+        {
+          description: 'منابع پروتیین',
+          url: 'https://backend.fitlinez.com/uploads/protein02.jpg',
+        },
+      ],
+      quiz: [
+        {
+          question: 'میزان دریافت پروتیین هر شخص بر چه اساسی مشخص می‌شود؟',
+          options: ['قد شخص', 'وزن SMM شخص', 'BMI فرد', 'سن شخص'],
+          correctAnswer: 1,
+        },
+        {
+          question: 'میزان استاندارد پروتئین روزانه چقدر است؟',
+          options: [
+            '۱/۶ تا ۲/۲ گرم به ازای هر کیلو وزن بدن',
+            'دو برابر وزن',
+            'یک برابر وزن',
+            '۵ گرم به ازای هر کیلو وزن بدن',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          question: 'کدام نوع پروتیین ارجح تر است؟',
+          options: [
+            'پروتئین گیاهی',
+            'پروتئین حیوانی',
+            'هیچ فرقی ندارد',
+            'پودر پروتئین',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question: 'دلیل تنوع دادن به منابع غذایی چیست؟',
+          options: [
+            'افزایش میروبایوم های مفید روده',
+            'جلوگیری از دلزدگی و خستگی در رژیم',
+            'دریافت ویتامین ها و مینرال ها از منابع مختلف',
+            'همه ی موارد بالا',
+          ],
+          correctAnswer: 3,
+        },
+      ],
     },
     {
       id: '3',
@@ -69,6 +160,50 @@ const TrainingVideoPlayer = () => {
       rating: 4.9,
       totalRatings: 1563,
       category: 'Core',
+      attachments: [
+        {
+          url: 'https://backend.fitlinez.com/uploads/fiber.jpg',
+          description: 'فایل فیبر',
+        },
+      ],
+      quiz: [
+        {
+          question: 'کدام یک از مواد غذایی زیر منبع غنی فیبر است؟',
+          options: ['نان لواش', 'برنج سفید', 'حبوبات', 'ماکارونی'],
+          correctAnswer: 2,
+        },
+        {
+          question: 'چرا مصرف بیش از حد فیبر ممکن است مضر باشد؟',
+          options: [
+            'کاهش وزن شدید',
+            'کمبود ویتامین‌ها و مواد معدنی',
+            'افزایش قند خون',
+            'احساس خستگی زیاد',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question:
+            'مصرف فیبر کافی می‌تواند به کاهش خطر کدام یک از بیماری‌های زیر کمک کند؟',
+          options: [
+            'کلسترول و قند خون',
+            'مشکلات قلبی',
+            'نقرس',
+            'فشار خون بالا',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          question: 'چه مقدار فیبر در روز برای یک بزرگسال توصیه می‌شود؟',
+          options: [
+            '10 تا 15 گرم',
+            '20 تا 35 گرم',
+            '40 تا 55 گرم',
+            '5 تا 10 گرم',
+          ],
+          correctAnswer: 1,
+        },
+      ],
     },
     {
       id: '4',
@@ -84,6 +219,56 @@ const TrainingVideoPlayer = () => {
       rating: 4.9,
       totalRatings: 1563,
       // category: 'Core',
+      attachments: [
+        {
+          description: 'منابع کربوهیدرات',
+          url: 'https://backend.fitlinez.com/uploads/401.jpg',
+        },
+        {
+          description: 'دسته بندی کربوهیدرات ساده و پیچیده',
+          url: 'https://backend.fitlinez.com/uploads/402.jpg',
+        },
+        {
+          description: 'دسته بندی کربوهیدراتها',
+          url: 'https://backend.fitlinez.com/uploads/403.webp',
+        },
+      ],
+      quiz: [
+        {
+          question:
+            'کدام گزینه بیانگر نقش اصلی کربوهیدرات‌های پیچیده در رژیم غذایی انسان است؟',
+          options: [
+            'تامین انرژی سریع',
+            'تنظیم قند خون',
+            'افزایش چربی بدن',
+            'کاهش وزن',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question:
+            'کدام یک از موارد زیر بیشترین تاثیر را در کاهش قند در رژیم غذایی دارد؟',
+          options: [
+            'حذف تمام مواد قندی',
+            'مصرف بیشتر فیبر',
+            'کاهش مصرف پروتئین',
+            'افزایش مصرف آب',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question:
+            'میزان مصرف روزانه‌ی قند (قند پنهان + free sugare) برای یک فرد بالغ سالم چقدر توصیه شده است؟',
+          options: ['کمتر از 45 گرم', '50 گرم', '75 گرم', '100 گرم'],
+          correctAnswer: 0,
+        },
+        {
+          question:
+            'کدام یک از موارد زیر یک منبع کربوهیدرات پیچیده است که همچنین پروتئین بالایی دارد؟',
+          options: ['عسل', 'سیب', 'کینوا', 'نان سبوس‌دار'],
+          correctAnswer: 2,
+        },
+      ],
     },
     {
       id: '5',
@@ -99,6 +284,63 @@ const TrainingVideoPlayer = () => {
       rating: 4.9,
       totalRatings: 1563,
       //  category: 'Core',
+      attachments: [
+        {
+          description: 'Impactful\nSleep Hygiene Practices',
+          url: 'https://backend.fitlinez.com/uploads/sleep01.png',
+        },
+        {
+          description: 'عوارض بی خوابی',
+          url: 'https://backend.fitlinez.com/uploads/sleep02.webp',
+        },
+        {
+          description: 'بهبود خواب',
+          url: 'https://backend.fitlinez.com/uploads/sleep04.jpg',
+        },
+        {
+          url: 'https://backend.fitlinez.com/uploads/sleep%20benefits.jpeg',
+          description: 'مزایای خواب',
+        },
+      ],
+      quiz: [
+        {
+          question:
+            'کدام یک از گزینه‌های زیر بیشترین تاثیر را بر کیفیت خواب شبانه دارد؟',
+          options: [
+            'مصرف کافئین قبل از خواب',
+            'داشتن یک برنامه منظم خواب',
+            'استفاده از گوشی موبایل در تختخواب',
+            'خوردن وعده غذایی سنگین پیش از خواب',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question:
+            'کدام یک از موارد زیر می‌تواند به افزایش کمیت خواب کمک کند؟',
+          options: [
+            'نوشیدن قهوه در عصر',
+            'تنظیم درجه حرارت اتاق خواب',
+            'مطالعه کتاب‌های هیجان‌انگیز قبل از خواب',
+            'خوابیدن در طول روز به مدت طولانی',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question: 'چه مقدار آب باید یک فرد بالغ در روز بنوشد؟',
+          options: [
+            '2 تا 3 لیتر',
+            '1 تا 2 لیتر',
+            '3 تا 4 لیتر',
+            'بستگی به وزن فرد دارد',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          question: 'کمبود آب در بدن چه عارضه‌ای می‌تواند ایجاد کند؟',
+          options: ['خستگی', 'سردرد', 'خشکی پوست', 'همه موارد'],
+          correctAnswer: 3,
+        },
+      ],
     },
     {
       id: '6',
@@ -114,6 +356,45 @@ const TrainingVideoPlayer = () => {
       rating: 4.9,
       totalRatings: 1563,
       //category: 'Core',
+      attachments: [
+        {
+          description: 'منابع چربی',
+          url: 'https://backend.fitlinez.com/uploads/fat01.jpg',
+        },
+        {
+          description: 'hand size portein',
+          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png\n',
+        },
+      ],
+      quiz: [
+        {
+          question:
+            'کدامیک از موارد زیر یک منبع عالی برای بهره‌مندی از چربی‌های چند غیر اشباع است؟',
+          options: ['روغن آفتابگردان', 'دانه چیا', 'کره گیاهی', 'روغن نارگیل'],
+          correctAnswer: 1,
+        },
+        {
+          question:
+            'کدامیک از اثرات زیر از فوائد مصرف چربی‌های سالم بر روی هورمون‌ها محسوب می‌شود؟',
+          options: [
+            'افزایش تولید هورمون کورتیزول',
+            'بهبود تعادل هورمون‌های جنسی',
+            'کاهش سطح هورمون انسولین',
+            'افزایش هورمون‌های تیروئیدی',
+          ],
+          correctAnswer: 1,
+        },
+        {
+          question: 'کدام یک از گزینه‌های زیر منبع خوبی از چربی‌های سالم است؟',
+          options: ['کره حیوانی', 'روغن زیتون', 'مارگارین', 'روغن نباتی'],
+          correctAnswer: 1,
+        },
+        {
+          question: 'یک گرم چربی چند کالری دارد؟',
+          options: ['۲ کالری', '۴ کالری', '۹ کالری', '۱۱ کالری'],
+          correctAnswer: 2,
+        },
+      ],
     },
     {
       id: '7',
@@ -129,6 +410,62 @@ const TrainingVideoPlayer = () => {
       rating: 4.9,
       totalRatings: 1563,
       //  category: 'Core',
+      attachments: [
+        {
+          description: 'منابع سبزیجات',
+          url: 'https://backend.fitlinez.com/uploads/vegetables01.jpg\n',
+        },
+        {
+          description: 'hand size portein',
+          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png\n',
+        },
+      ],
+      additionalLinks: [
+        {
+          link: 'https://t.me/+N-EXtwJ6_UdlYWJk',
+          name: 'لینک گروه تلگرام',
+        },
+      ],
+      quiz: [
+        {
+          question:
+            'کدام ترکیب از مواد غذایی در یک بشقاب غذایی کامل و سالم بهتر است؟',
+          options: [
+            'مرغ کبابی، برنج قهوه‌ای، بروکلی بخارپز',
+            'استیک گاو، سیب‌زمینی سرخ‌شده، هویج رنده‌شده',
+            'ماهی سرخ‌شده، نان سفید، ذرت مکزیکی',
+            'تخم‌مرغ آب‌پز، نان تست، خیار شور',
+          ],
+          correctAnswer: 0,
+        },
+        {
+          question:
+            'برای تعیین مقدار مناسب چربی در رژیم غذایی، از کدام بخش دست می‌توان استفاده کرد؟',
+          options: ['نوک انگشت سبابه', 'کف دست', 'انگشت شست', 'پشت دست'],
+          correctAnswer: 2,
+        },
+        {
+          question: '"Rainbow eating یا رنگین‌کمانی خوردن" به چه معناست؟',
+          options: [
+            'مصرف فقط سبزیجات سبز',
+            'خوردن غذاهای متنوع از تمام گروه‌های غذایی',
+            'مصرف سبزیجات در رنگ‌های مختلف',
+            'خوردن غذاهای شیرین',
+          ],
+          correctAnswer: 2,
+        },
+        {
+          question:
+            'کدام یک از گزینه‌های زیر مزیت استفاده از روش Hand-sized Portion در چیدن بشقاب غذایی است؟',
+          options: [
+            'ایجاد وعده‌های غذایی کم‌کالری',
+            'اندازه‌گیری ساده و بدون نیاز به ترازو',
+            'مصرف پروتئین',
+            'خوردن غذای کمتر',
+          ],
+          correctAnswer: 1,
+        },
+      ],
     },
     {
       id: '8',
@@ -177,65 +514,6 @@ const TrainingVideoPlayer = () => {
     },
   ];
 
-  const mockComments = [
-    {
-      id: '1',
-      userName: 'Alex Thompson',
-      userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      content:
-        'This workout is amazing! Perfect for beginners like me. Sarah explains everything so clearly and the modifications are really helpful.',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      likes: 24,
-      isLiked: false,
-      isCoach: false,
-      replies: [
-        {
-          id: '1-1',
-          userName: 'Sarah Johnson',
-          userAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-          content:
-            'Thank you Alex! So glad you found it helpful. Keep up the great work! 💪',
-          createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-          isCoach: true,
-        },
-      ],
-    },
-    {
-      id: '2',
-      userName: 'Maria Rodriguez',
-      userAvatar: 'https://randomuser.me/api/portraits/women/68.jpg',
-      content:
-        'Been doing this workout for 2 weeks now and already seeing improvements in my stamina. The 30-second intervals are perfect!',
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      likes: 18,
-      isLiked: true,
-      isCoach: false,
-      replies: [],
-    },
-    {
-      id: '3',
-      userName: 'David Kim',
-      userAvatar: 'https://randomuser.me/api/portraits/men/75.jpg',
-      content:
-        "Quick question - should I feel the burn in my legs during the jumping jacks? Want to make sure I'm doing it right.",
-      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      likes: 7,
-      isLiked: false,
-      isCoach: false,
-      replies: [
-        {
-          id: '3-1',
-          userName: 'Sarah Johnson',
-          userAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-          content:
-            "Yes David! That's completely normal. The burn in your legs means your muscles are working hard. Just make sure to land softly and keep good form.",
-          createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
-          isCoach: true,
-        },
-      ],
-    },
-  ];
-
   useEffect(() => {
     // Simulate loading video data
     const loadVideo = () => {
@@ -243,7 +521,7 @@ const TrainingVideoPlayer = () => {
       setTimeout(() => {
         const video = mockVideos.find((v) => v.id === (videoId || '1'));
         setCurrentVideo(video || mockVideos[0]);
-        setComments(mockComments);
+        // setComments(mockComments);
 
         // Load user preferences
         const bookmarked = localStorage.getItem(`bookmark_${video?.id || '1'}`);
@@ -422,6 +700,7 @@ const TrainingVideoPlayer = () => {
             </div>
 
             {/* Comments Section - Mobile */}
+            <SessionQuiz quiz={currentVideo.quiz} />
             {/* <div className="lg:hidden p-4">
               <CommentsSection
                 comments={comments}

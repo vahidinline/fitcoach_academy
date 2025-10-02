@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import PersianNumberInput from 'components/ui/NumberInput';
 
 const AuthMethodStep = ({
   selectedLocation,
@@ -11,10 +12,21 @@ const AuthMethodStep = ({
   onContactInfoChange,
   onContinue,
   onBack,
+  loading,
 }) => {
   const getAuthMethods = () => {
     if (selectedLocation === 'iran') {
       return [
+        {
+          id: 'email',
+          name: 'ورود با ایمیل',
+          description: 'ورود سریع با ارسال کد تایید به ایمیل شما',
+          icon: 'Email',
+          inputType: 'email',
+          inputLabel: ' آدرس ایمیل',
+          inputPlaceholder: 'email@gmail.com',
+          recommended: true,
+        },
         {
           id: 'sms',
           name: 'ورود با شماره موبایل',
@@ -28,23 +40,23 @@ const AuthMethodStep = ({
       ];
     } else {
       return [
+        // {
+        //   id: 'firebase_sms',
+        //   name: 'احراز هویت پیامکی',
+        //   description: 'احراز هویت با شماره موبایل (برای همه کشورها فعال نیست)',
+        //   icon: 'MessageSquare',
+        //   inputType: 'tel',
+        //   inputLabel: 'شماره همراه',
+        //   inputPlaceholder: '+1234567890',
+        //   recommended: true,
+        // },
         {
-          id: 'firebase_sms',
-          name: 'SMS Verification',
-          description: 'Quick verification via Firebase SMS',
-          icon: 'MessageSquare',
-          inputType: 'tel',
-          inputLabel: 'Phone Number',
-          inputPlaceholder: '+1234567890',
-          recommended: true,
-        },
-        {
-          id: 'firebase_email',
-          name: 'Email Verification',
-          description: 'Secure email token verification',
+          id: 'email',
+          name: 'احراز هویت ایمیلی',
+          description: 'دریافت کد تایید از طریق ایمیل',
           icon: 'Mail',
           inputType: 'email',
-          inputLabel: 'Email Address',
+          inputLabel: 'آدرس ایمیل',
           inputPlaceholder: 'your@email.com',
           recommended: false,
         },
@@ -63,7 +75,7 @@ const AuthMethodStep = ({
       return phoneRegex.test(contactInfo);
     }
 
-    if (selectedAuthMethod === 'firebase_email') {
+    if (selectedAuthMethod === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(contactInfo);
     }
@@ -72,10 +84,10 @@ const AuthMethodStep = ({
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div dir="rtl" className="p-6 space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          Choose Authentication Method
+          انتخاب روش احراز هویت
         </h2>
         <p className="text-muted-foreground">
           {selectedLocation === 'iran'
@@ -96,7 +108,7 @@ const AuthMethodStep = ({
             }`}>
             {method.recommended && (
               <div className="absolute -top-2 left-4 bg-success text-success-foreground text-xs font-medium px-2 py-1 rounded">
-                Recommended
+                توصیه شده
               </div>
             )}
 
@@ -131,24 +143,35 @@ const AuthMethodStep = ({
                 </p>
 
                 {selectedAuthMethod === method.id && (
-                  <div className="mt-4">
-                    <Input
-                      label={method.inputLabel}
-                      type={method.inputType}
-                      placeholder={method.inputPlaceholder}
-                      value={contactInfo}
-                      onChange={(e) => onContactInfoChange(e.target.value)}
-                      required
-                      description={
-                        method.inputType === 'tel' &&
-                        selectedLocation === 'iran'
-                          ? 'Enter your Iranian mobile number (09xxxxxxxxx)'
-                          : method.inputType === 'tel'
-                          ? 'Enter your phone number with country code'
-                          : "We'll send a verification token to this email"
-                      }
-                    />
-                  </div>
+                  <>
+                    <div className="mt-4">
+                      {method.inputType === 'tel' &&
+                      selectedLocation === 'iran' ? (
+                        <PersianNumberInput
+                          value={contactInfo}
+                          onChange={(val) => onContactInfoChange(val)}
+                          className="flex h-10 w-full rounded-md border border-white bg-gray-100 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                      ) : (
+                        <Input
+                          label={method.inputLabel}
+                          type={method.inputType}
+                          placeholder={method.inputPlaceholder}
+                          value={contactInfo}
+                          onChange={(e) => onContactInfoChange(e.target.value)}
+                          required
+                          description={
+                            method.inputType === 'tel' &&
+                            selectedLocation === 'iran'
+                              ? 'شماره موبایل خود را وارد کنید (09xxxxxxxxx)'
+                              : method.inputType === 'tel'
+                              ? 'شماره موبایل خود را به همراه کد کشور وارد کنید'
+                              : 'ارسال کد به ایمیل'
+                          }
+                        />
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -164,30 +187,32 @@ const AuthMethodStep = ({
               size={16}
               className="text-primary flex-shrink-0 mt-0.5"
             />
-            <div>
+            {/* <div>
               <p className="text-sm font-medium text-foreground">
-                Secure Iranian Authentication
+                دریافت کد تایید از طریق پیامک
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Your phone number will be verified using Melli Payamak's secure
-                SMS service. This ensures compliance with Iranian regulations
-                and provides the best user experience.
+                کد تایید تا لحظاتی دیگر به شماره موبایل شما ارسال میگردد.
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       )}
 
       <div className="flex space-x-3 pt-4">
         <Button variant="outline" onClick={onBack} className="flex-1">
-          Back
+          برگشت
         </Button>
         <Button
           variant="default"
-          onClick={onContinue}
-          disabled={!selectedAuthMethod || !validateContactInfo()}
+          onClick={() => {
+            // Call parent handler to send OTP
+            onContinue(contactInfo);
+          }}
+          disabled={loading || !selectedAuthMethod || !validateContactInfo()}
+          //disabled={!selectedAuthMethod || !validateContactInfo()}
           className="flex-1">
-          Continue to Verification
+          احراز هویت
         </Button>
       </div>
     </div>

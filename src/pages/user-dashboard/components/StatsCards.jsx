@@ -1,12 +1,58 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from '../../../components/AppIcon';
+import api from 'api/api';
 
-const StatsCards = ({ stats }) => {
+const StatsCards = () => {
+  const [userId, setUserId] = useState('');
+  const [userData, setUserData] = useState({});
+  const [status, setStatus] = useState('idle');
+  const [docExists, setDocExists] = useState(false);
+
+  console.log('userData in state', userData, docExists);
+
+  const fetchDoc = async (id) => {
+    if (!id) return;
+    setStatus('loading');
+    try {
+      const res = await api.get(`/ShapeUpAssessment/${id}`);
+      console.log('fetchDoc res', res);
+
+      if (res.data?.data) {
+        setUserData(res.data.data);
+        setDocExists(true);
+      } else {
+        setDocExists(false);
+      }
+      setStatus('loaded');
+    } catch (err) {
+      console.error('fetchDoc error', err);
+      setDocExists(false);
+      setStatus('idle');
+    }
+  };
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (storedUser?.id) {
+      setUserId(storedUser.id);
+      fetchDoc(storedUser.id);
+    }
+  }, []);
+
+  const getDaysSince = (dateString) => {
+    if (!dateString) return '-';
+    const created = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - created;
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24)); // convert ms → days
+  };
+
   const statsData = [
     {
       id: 'initWeight',
       title: 'وزن اولیه',
-      value: `${stats.initWeight} کیلوگرم`,
+      value: userData?.weight ? `${userData.weight} کیلوگرم` : '-',
+      // value: `${userData.weight} کیلوگرم`,
       icon: 'weight',
       color: 'text-primary',
       bgColor: 'bg-primary/10',
@@ -14,23 +60,27 @@ const StatsCards = ({ stats }) => {
     {
       id: 'daysOfDiet',
       title: 'شروع دوره',
-      value: `${stats.daysOfDiet} روز`,
+      value: userData?.createdAt
+        ? `${getDaysSince(userData.createdAt)} روز`
+        : '-',
       icon: 'Flame',
       color: 'text-accent',
       bgColor: 'bg-accent/10',
     },
     {
       id: 'GoalWeight',
-      title: 'وزن هدف',
-      value: `${stats.goalWeight} کیلوگرم`,
+      title: 'قد',
+      value: userData?.height ? `${userData.height} سانتی متر` : '-',
+      //value: `${userData ? userData.height : '-'} سانتی متر`,
       icon: 'TrendingUp',
       color: 'text-success',
       bgColor: 'bg-success/10',
     },
     {
       id: 'milestone',
-      title: 'هدف بعدی',
-      value: `${stats.nextMilestone} `,
+      title: 'هدف ',
+      value: userData?.reason ? `${userData.reason}  ` : '-',
+      // value: `${userData.reason}`,
       icon: 'Target',
       color: 'text-warning',
       bgColor: 'bg-warning/10',

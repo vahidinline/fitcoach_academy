@@ -6,11 +6,37 @@ import Select from 'components/ui/Select';
 import { useEffect, useState, useRef } from 'react';
 
 export default function BasicForm() {
+  // read once from localStorage (supports either key)
+  const storedCredentials = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('credentials') || 'null');
+    } catch {
+      return null;
+    }
+  })();
+  const storedUserData = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('userData') || 'null');
+    } catch {
+      return null;
+    }
+  })();
+
+  const initialUserId =
+    storedCredentials?.userId ||
+    storedUserData?.id ||
+    storedUserData?.userId ||
+    '';
+
+  const initialName = storedCredentials?.name || storedUserData?.name || '';
+
   const [status, setStatus] = useState('idle'); // idle, loading, loaded, success, error
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initialName);
   const [editMode, setEditMode] = useState(false);
+  const [docExists, setDocExists] = useState(false);
+  const hiddenFields = ['userId', '__v', 'createdAt', 'id', '_id', 'updatedAt'];
   const [userData, setUserData] = useState({
-    userId: '',
+    userId: initialUserId || '',
     weight: '',
     height: '',
     age: '',
@@ -27,13 +53,13 @@ export default function BasicForm() {
     exerciseType: '',
     placeOfExercise: '',
     comment: '',
+    updatedAt: '',
+    // if your API returns an _id or id for the document, it will be merged in on fetch
   });
 
   const formRef = useRef(null);
 
-  // Persian labels for fields
   const fieldLabels = {
-    userId: 'شناسه کاربر',
     weight: 'وزن فعلی (کیلوگرم)',
     height: 'قد (سانتی‌متر)',
     age: 'سن',
@@ -50,6 +76,7 @@ export default function BasicForm() {
     exerciseType: 'نوع ورزش',
     placeOfExercise: 'محل ورزش',
     comment: 'توضیحات',
+    updatedAt: 'آخرین به‌روزرسانی',
   };
 
   const optionList = {
@@ -108,48 +135,88 @@ export default function BasicForm() {
     ],
   };
 
-  useEffect(() => {
-    const credentials = localStorage.getItem('credentials');
-    if (credentials) {
-      const parsedCredentials = JSON.parse(credentials);
-      setUserData((prev) => ({ ...prev, userId: parsedCredentials.userId }));
-      setName(parsedCredentials.name || '');
-      setStatus('loading');
-
-      api
-        .get(`/ShapeUpAssessment/${parsedCredentials.userId}`)
-        .then((res) => {
-          if (res.data?.data) {
-            setUserData((prev) => ({ ...prev, ...res.data.data }));
-          }
-          setStatus('loaded');
-        })
-        .catch(() => setStatus('idle'));
+  // fetch function (used on mount and after successful save)
+  const fetchDoc = async (id) => {
+    if (!id) return;
+    setStatus('loading');
+    try {
+      const res = await api.get(`/ShapeUpAssessment/${id}`);
+      // log the response shape to debug if needed
+      // console.log('fetchDoc res', res);
+      if (res.data?.data) {
+        setUserData((prev) => ({ ...prev, ...res.data.data }));
+        setDocExists(true);
+      } else {
+        // no document found
+        setDocExists(false);
+      }
+      setStatus('loaded');
+    } catch (err) {
+      console.error('fetchDoc error', err);
+      setDocExists(false);
+      setStatus('idle');
     }
-  }, []);
+  };
 
-  // handleChange for both Input and Select
-  const handleChange = (e) => {
-    const id = e.target.id || e.target.name;
-    const value = e.target.value;
-    setUserData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  // fetch when we have userId (runs on mount if initialUserId exists)
+  useEffect(() => {
+    if (userData.userId) {
+      fetchDoc(userData.userId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData.userId]);
+
+  // support both native events and custom select callbacks
+  const handleChange = (eOrValue, maybeName) => {
+    if (eOrValue && eOrValue.target) {
+      const { id, name, value } = eOrValue.target;
+      setUserData((prev) => ({ ...prev, [id || name]: value }));
+    } else {
+      // when Select calls onChange(value) we pass field name explicitly
+      const fieldName = maybeName;
+      setUserData((prev) => ({ ...prev, [fieldName]: eOrValue }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
     try {
-      await api.post(`/ShapeUpAssessment`, userData);
+      // if backend expects update vs create, use PUT when the document has an id/_id
+      const docId = userData._id || userData.id;
+      if (docId) {
+        console.log('put');
+        await api.put(`/ShapeUpAssessment/${docId}`, userData);
+      } else {
+        console.log('post');
+        await api.post(`/ShapeUpAssessment`, userData);
+      }
+
+      // after save, refetch to get server-updated fields (like updatedAt)
+      await fetchDoc(userData.userId);
+
       setStatus('success');
       alert('اطلاعات با موفقیت ثبت شد');
       setEditMode(false);
     } catch (error) {
-      console.error(error);
+      console.error('submit error', error);
       setStatus('error');
       alert('خطا در ثبت اطلاعات. لطفا دوباره تلاش کنید.');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    try {
+      return new Date(dateString).toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateString;
     }
   };
 
@@ -157,7 +224,9 @@ export default function BasicForm() {
     <div className="min-h-screen bg-background">
       <ContextualHeader />
       <div className="font-custom1 max-w-2xl mx-auto mt-6 pt-20 p-2 border rounded-lg shadow-md bg-white">
-        <div dir="rtl" className="flex justify-between items-center mb-4">
+        <div
+          dir="rtl"
+          className="flex relative  justify-between bg-green-200 mb-4  w-full p-2 rounded top-16 max-w-2xl">
           <h2 className="text-lg font-bold text-right">
             {name ? `اطلاعات ${name}` : 'اطلاعات کاربر'}
           </h2>
@@ -167,156 +236,192 @@ export default function BasicForm() {
             }`}
             onClick={() => {
               if (editMode) {
-                formRef.current?.requestSubmit(); // programmatic submit
+                formRef.current?.requestSubmit();
               } else {
                 setEditMode(true);
-                setStatus('idle'); // reset status when entering edit mode
+                setStatus('idle');
               }
             }}
             disabled={status === 'loading'}
             type="button">
-            {editMode ? 'ثبت' : 'ویرایش'}
+            {editMode ? 'ثبت' : docExists ? 'ویرایش' : 'ایجاد اطلاعات'}
           </button>
         </div>
 
         {!editMode ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700">
-            {Object.entries(userData).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-3 rounded shadow-sm">
-                <span className="block font-semibold">
-                  {fieldLabels[key] || key}:
-                </span>
-                <span>{value || '—'}</span>
+          <div className="space-y-3 mt-20">
+            {/* show updatedAt at top if present */}
+            <div className="text-sm text-gray-500 mb-2">
+              آخرین به‌روزرسانی: {formatDate(userData.updatedAt)}
+            </div>
+
+            {!docExists ? (
+              <div dir="rtl" className="p-3 bg-yellow-50 rounded">
+                اطلاعاتی برای این کاربر پیدا نشد — برای ایجاد اطلاعات روی "ایجاد
+                اطلاعات" کلیک کنید.
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700">
+                {Object.entries(userData)
+                  .filter(([key]) => !hiddenFields.includes(key))
+                  .map(([key, value]) => (
+                    <div key={key} className="bg-gray-50 p-3 rounded shadow-sm">
+                      <span className="block font-semibold">
+                        {fieldLabels[key] || key}:
+                      </span>
+                      <span>
+                        {key === 'updatedAt'
+                          ? new Date(value).toLocaleDateString('fa-IR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : value || '—'}
+                      </span>
+                    </div>
+                  ))}
+                {/* {Object.entries(userData)
+                  .filter(
+                    ([key]) =>
+                      ![
+                        'userId',
+                        '__v',
+                        'createdAt',
+                        'id',
+                        '_id',
+                        'updatedAt',
+                      ].includes(key) // exclude unwanted fields
+                  )
+                  .map(([key, value]) => (
+                    <div key={key} className="bg-gray-50 p-3 rounded shadow-sm">
+                      <span className="block font-semibold">
+                        {fieldLabels[key] || key}:
+                      </span>
+                      <span>
+                        {key === 'updatedAt' ? formatDate(value) : value || '—'}
+                      </span>
+                    </div>
+                  ))} */}
+              </div>
+            )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4" ref={formRef}>
+          <form
+            dir="rtl"
+            onSubmit={handleSubmit}
+            className="space-y-4 mt-20"
+            ref={formRef}>
             <Input
               label={fieldLabels.weight}
               id="weight"
-              type="text"
               onChange={handleChange}
               value={userData.weight || ''}
             />
             <Input
               label={fieldLabels.height}
               id="height"
-              type="text"
               onChange={handleChange}
               value={userData.height || ''}
             />
             <Input
               label={fieldLabels.age}
               id="age"
-              type="text"
               onChange={handleChange}
               value={userData.age || ''}
             />
             <Select
               label={fieldLabels.gender}
-              id="gender"
               name="gender"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'gender')}
               value={userData.gender || ''}
               options={optionList.gender}
             />
             <Input
               label={fieldLabels.illness}
               id="illness"
-              type="text"
               onChange={handleChange}
               value={userData.illness || ''}
             />
             <Input
               label={fieldLabels.medication}
               id="medication"
-              type="text"
               onChange={handleChange}
               value={userData.medication || ''}
             />
             <Input
               label={fieldLabels.pain}
               id="pain"
-              type="text"
               onChange={handleChange}
               value={userData.pain || ''}
             />
             <Select
               label={fieldLabels.reason}
-              id="reason"
               name="reason"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'reason')}
               value={userData.reason || ''}
               options={optionList.reason}
             />
             <Select
               label={fieldLabels.calorie}
-              id="calorie"
               name="calorie"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'calorie')}
               value={userData.calorie || ''}
               options={optionList.calorie}
             />
             <Select
               label={fieldLabels.calories}
-              id="calories"
               name="calories"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'calories')}
               value={userData.calories || ''}
               options={optionList.calories}
             />
             <Select
               label={fieldLabels.macro}
-              id="macro"
               name="macro"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'macro')}
               value={userData.macro || ''}
               options={optionList.macro}
             />
             <Select
               label={fieldLabels.lastTimeDiet}
-              id="lastTimeDiet"
               name="lastTimeDiet"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'lastTimeDiet')}
               value={userData.lastTimeDiet || ''}
               options={optionList.lastTimeDiet}
             />
             <Input
               label={fieldLabels.currentDiet}
               id="currentDiet"
-              type="text"
               onChange={handleChange}
               value={userData.currentDiet || ''}
             />
             <Select
               label={fieldLabels.exerciseType}
-              id="exerciseType"
               name="exerciseType"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'exerciseType')}
               value={userData.exerciseType || ''}
               options={optionList.exerciseType}
             />
             <Select
               label={fieldLabels.placeOfExercise}
-              id="placeOfExercise"
               name="placeOfExercise"
-              onChange={handleChange}
+              onChange={(v) => handleChange(v, 'placeOfExercise')}
               value={userData.placeOfExercise || ''}
               options={optionList.placeOfExercise}
             />
             <Input
               label={fieldLabels.comment}
               id="comment"
-              type="text"
               onChange={handleChange}
               value={userData.comment || ''}
             />
-            {/* Hidden submit button to allow programmatic submission */}
             <button type="submit" className="hidden" />
           </form>
         )}
       </div>
+
       <BottomTabNavigation />
     </div>
   );

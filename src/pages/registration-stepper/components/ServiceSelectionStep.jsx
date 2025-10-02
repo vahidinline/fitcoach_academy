@@ -6,6 +6,7 @@ const ServiceSelectionStep = ({
   selectedService,
   onServiceSelect,
   onContinue,
+  selectedLocation,
 }) => {
   const services = [
     {
@@ -29,9 +30,10 @@ const ServiceSelectionStep = ({
     },
     {
       id: 'private',
-      name: 'خدمات کوچینگ خصوصی',
+      name: ' کوچینگ خصوصی',
       price: 149,
       originalPrice: 199,
+      rialPrice: 10000000,
       duration: 'ماهیانه',
       features: [
         'جلسات آنلاین هفتگی ۱-۱',
@@ -65,7 +67,7 @@ const ServiceSelectionStep = ({
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div dir="rtl" className="p-6 space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
           لطفا یک محصول را انتخاب کنید
@@ -80,11 +82,11 @@ const ServiceSelectionStep = ({
             onClick={() => onServiceSelect(service.id)}
             className={`relative p-4 rounded-lg border-2 cursor-pointer animate-spring ${
               selectedService === service.id
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-green-300'
                 : 'border-border bg-card hover:border-primary/50'
             }`}>
             {service.popular && (
-              <div className="absolute -top-2 left-4 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
+              <div className="absolute  -top-3 left-4 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
                 محبوب
               </div>
             )}
@@ -95,31 +97,29 @@ const ServiceSelectionStep = ({
               </div>
             )}
 
-            <div className="flex items-start space-x-4">
-              <div
-                className={`w-12 h-12 ${service.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                <Icon name={service.icon} size={24} className="text-white" />
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-foreground">
+            <div className="">
+              <div>
+                <div className="flex flex-row items-center justify-between mb-2">
+                  <h3 className="text-lg p-1 font-semibold text-foreground">
                     {service.name}
                   </h3>
                   <div className="flex flex-col">
                     <div className="text-right ">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xl font-bold text-foreground">
-                          Eur{service.price}
-                        </span>
-                      </div>
-                      <div className="text-right">
+                      {selectedLocation !== 'iran' ? (
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm ">
-                            ریال {service.rialPrice}
+                          <span className="text-xl font-bold text-foreground">
+                            € {service.price}
                           </span>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl font-bold text-foreground">
+                              {service.rialPrice.toLocaleString('fa-IR')} تومان
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       <span className="text-xs">
                         برای {service.duration.toLowerCase()}
                       </span>
@@ -142,7 +142,7 @@ const ServiceSelectionStep = ({
                   ))}
                 </ul>
               </div>
-
+              {/*
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                   selectedService === service.id
@@ -156,7 +156,7 @@ const ServiceSelectionStep = ({
                     className="text-primary-foreground"
                   />
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
         ))}

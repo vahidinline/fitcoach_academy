@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
 
-const PaymentStep = ({ 
-  selectedService, 
-  selectedLocation, 
-  onComplete, 
+const PaymentStep = ({
+  selectedService,
+  selectedLocation,
+  onComplete,
   onBack,
-  onSkipTrial 
+  onSkipTrial,
+  contactInfo,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -18,61 +18,106 @@ const PaymentStep = ({
     expiryDate: '',
     cvv: '',
     cardholderName: '',
-    email: '',
-    phone: ''
+    email: contactInfo || '',
+    firstName: '',
+    lastName: '',
+    phone: contactInfo || '',
   });
 
-  const serviceDetails = {
-    academy: { name: 'Academy Course', price: 49, originalPrice: 79 },
-    private: { name: 'Private Course', price: 149, originalPrice: 199 },
-    calorie: { name: 'Calorie Counting Service', price: 29, originalPrice: 39, hasTrial: true }
-  };
+  const [userDetails, setUserDetails] = useState({
+    userName: '',
+    userFamily: '',
+  });
+
+  const [serviceDetails, setServiceDetails] = useState({
+    academy: {
+      name: 'دوره آکادمی',
+      price: 49,
+      originalPrice: 79,
+      rialPrice: 3500000,
+      firstName: '',
+      lastName: '',
+    },
+    private: {
+      name: ' کوچینگ خصوصی',
+      price: 149,
+      originalPrice: 199,
+      rialPrice: 10000000,
+      firstName: '',
+      lastName: '',
+    },
+    calorie: {
+      name: 'Calorie Counting Service',
+      price: 29,
+      originalPrice: 39,
+      hasTrial: true,
+      firstName: '',
+      lastName: '',
+    },
+  });
 
   const service = serviceDetails[selectedService];
+  console.log('services in payment', service);
 
   const getPaymentMethods = () => {
     if (selectedLocation === 'iran') {
       return [
-        { value: 'zarinpal', label: 'ZarinPal', description: 'Secure Iranian payment gateway' },
-        { value: 'bank_transfer', label: 'Bank Transfer', description: 'Direct bank payment' }
+        {
+          value: 'shaparak',
+          label: 'درگاه شاپرک',
+          description: 'پرداخت امن از طریق درگاه بانکی',
+        },
       ];
     } else {
       return [
-        { value: 'stripe', label: 'Credit/Debit Card', description: 'Visa, Mastercard, American Express' },
-        { value: 'paypal', label: 'PayPal', description: 'Pay with your PayPal account' },
-        { value: 'apple_pay', label: 'Apple Pay', description: 'Quick payment with Touch ID' }
+        {
+          value: 'stripe',
+          label: 'Credit/Debit Card',
+          description: 'Visa, Mastercard, American Express',
+        },
       ];
     }
   };
 
   const paymentMethods = getPaymentMethods();
 
-  const formatPrice = (price) => {
+  const formatPrice = (rialPrice) => {
     if (selectedLocation === 'iran') {
-      return `${(price * 42000).toLocaleString('fa-IR')} تومان`;
+      return `${rialPrice.toLocaleString('fa-IR')} تومان`;
     }
-    return `$${price}`;
+    return `$${rialPrice}`;
   };
 
   const handleInputChange = (field, value) => {
-    setPaymentData(prev => ({
+    setPaymentData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
+    // ✅ اگر فیلد مربوط به نام باشد، داخل سرویس ذخیره کن
+    if (field === 'firstName' || field === 'lastName') {
+      serviceDetails[selectedService][field] = value;
+    }
   };
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    
+
+    // ✅ Attach the user’s name to service before completing
+    service.firstName = paymentData.firstName;
+    service.lastName = paymentData.lastName;
+
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       onComplete({
         transactionId: 'TXN_' + Date.now(),
         amount: service.price,
         method: paymentMethod,
-        status: 'completed'
+        status: 'completed',
+        amountRial: service.rialPrice,
+        firstName: service.firstName,
+        lastName: service.lastName,
+        contactInfo: paymentData.phone || paymentData.email,
       });
     } catch (error) {
       console.error('Payment failed:', error);
@@ -86,9 +131,17 @@ const PaymentStep = ({
       trialId: 'TRIAL_' + Date.now(),
       service: selectedService,
       trialDays: 3,
-      status: 'trial_active'
+      status: 'trial_active',
     });
   };
+
+  useEffect(() => {
+    if (selectedLocation === 'iran') {
+      setPaymentMethod('shaparak');
+    } else {
+      setPaymentMethod('stripe');
+    }
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -97,30 +150,31 @@ const PaymentStep = ({
           <Icon name="CreditCard" size={32} className="text-success" />
         </div>
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          Complete Your Purchase
+          نهایی کردن خرید
         </h2>
-        <p className="text-muted-foreground">
-          Secure payment processing for your fitness journey
-        </p>
+        <p className="text-muted-foreground">پرداخت امن</p>
       </div>
 
       {/* Service Summary */}
       <div className="bg-muted/50 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-foreground">{service.name}</h3>
+          <h3 className="font-semibold text-foreground">{service?.name}</h3>
           <div className="text-right">
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground line-through">
-                {formatPrice(service.originalPrice)}
-              </span>
-              <span className="text-xl font-bold text-foreground">
-                {formatPrice(service.price)}
-              </span>
+              {selectedLocation === 'iran' ? (
+                <span className="text-xl font-bold text-foreground">
+                  {`${service.rialPrice.toLocaleString('fa-IR')} تومان`}
+                </span>
+              ) : (
+                <span className="text-xl font-bold text-foreground">
+                  {service.originalPrice}
+                </span>
+              )}
             </div>
-            <span className="text-xs text-muted-foreground">per month</span>
+            <span className="text-xs text-muted-foreground"></span>
           </div>
         </div>
-        
+
         {service.hasTrial && (
           <div className="flex items-center space-x-2 text-sm text-success">
             <Icon name="Gift" size={16} />
@@ -133,19 +187,23 @@ const PaymentStep = ({
       {service.hasTrial && (
         <div className="p-4 bg-success/10 rounded-lg border border-success/20">
           <div className="flex items-start space-x-3">
-            <Icon name="Gift" size={20} className="text-success flex-shrink-0 mt-0.5" />
+            <Icon
+              name="Gift"
+              size={20}
+              className="text-success flex-shrink-0 mt-0.5"
+            />
             <div className="flex-1">
               <h4 className="font-semibold text-success mb-1">
                 Start Your Free Trial
               </h4>
               <p className="text-sm text-success/80 mb-3">
-                Try our Calorie Counting Service for 3 days absolutely free. No payment required, cancel anytime.
+                Try our Calorie Counting Service for 3 days absolutely free. No
+                payment required, cancel anytime.
               </p>
               <Button
                 variant="outline"
                 onClick={handleTrialStart}
-                className="border-success text-success hover:bg-success hover:text-success-foreground"
-              >
+                className="border-success text-success hover:bg-success hover:text-success-foreground">
                 Start 3-Day Free Trial
               </Button>
             </div>
@@ -155,83 +213,103 @@ const PaymentStep = ({
 
       {/* Payment Method Selection */}
       <div className="space-y-4">
-        <Select
-          label="Payment Method"
+        {/* <Select
+          label="درگاه پرداخت"
           options={paymentMethods}
           value={paymentMethod}
           onChange={setPaymentMethod}
-          placeholder="Select payment method"
+          placeholder="انتخاب روش پرداخت"
           required
-        />
+        /> */}
 
         {/* Payment Form */}
         {paymentMethod && (
           <div className="space-y-4 p-4 bg-card border border-border rounded-lg">
-            {selectedLocation === 'international' && paymentMethod === 'stripe' && (
-              <>
-                <Input
-                  label="Card Number"
-                  type="text"
-                  placeholder="1234 5678 9012 3456"
-                  value={paymentData.cardNumber}
-                  onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                  required
-                />
-                <div className="grid grid-cols-2 gap-4">
+            {selectedLocation === 'international' &&
+              paymentMethod === 'stripe' && (
+                <>
                   <Input
-                    label="Expiry Date"
+                    label="Card Number"
                     type="text"
-                    placeholder="MM/YY"
-                    value={paymentData.expiryDate}
-                    onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                    placeholder="1234 5678 9012 3456"
+                    value={paymentData.cardNumber}
+                    onChange={(e) =>
+                      handleInputChange('cardNumber', e.target.value)
+                    }
                     required
                   />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Expiry Date"
+                      type="text"
+                      placeholder="MM/YY"
+                      value={paymentData.expiryDate}
+                      onChange={(e) =>
+                        handleInputChange('expiryDate', e.target.value)
+                      }
+                      required
+                    />
+                    <Input
+                      label="CVV"
+                      type="text"
+                      placeholder="123"
+                      value={paymentData.cvv}
+                      onChange={(e) => handleInputChange('cvv', e.target.value)}
+                      required
+                    />
+                  </div>
                   <Input
-                    label="CVV"
+                    label="Cardholder Name"
                     type="text"
-                    placeholder="123"
-                    value={paymentData.cvv}
-                    onChange={(e) => handleInputChange('cvv', e.target.value)}
+                    placeholder="John Doe"
+                    value={paymentData.cardholderName}
+                    onChange={(e) =>
+                      handleInputChange('cardholderName', e.target.value)
+                    }
                     required
                   />
-                </div>
-                <Input
-                  label="Cardholder Name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={paymentData.cardholderName}
-                  onChange={(e) => handleInputChange('cardholderName', e.target.value)}
-                  required
-                />
-              </>
-            )}
+                </>
+              )}
 
             {selectedLocation === 'iran' && (
-              <>
+              <div dir="rtl">
                 <Input
-                  label="Email Address"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={paymentData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  label="نام"
+                  type="text"
+                  placeholder=""
+                  value={paymentData.firstName}
+                  onChange={(e) =>
+                    handleInputChange('firstName', e.target.value)
+                  }
                   required
                 />
                 <Input
-                  label="Phone Number"
-                  type="tel"
+                  label="نام خانوادگی"
+                  type="text"
+                  placeholder=""
+                  value={paymentData.lastName}
+                  onChange={(e) =>
+                    handleInputChange('lastName', e.target.value)
+                  }
+                  required
+                />
+                <Input
+                  label="شماره موبایل / ایمیل"
+                  type="text"
+                  disabled
                   placeholder="09123456789"
                   value={paymentData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  required
+                  //  required
                 />
-              </>
+              </div>
             )}
 
-            <div className="p-3 bg-success/10 rounded-lg">
+            <div dir="rtl" className="p-3 bg-success/10 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Icon name="Shield" size={16} className="text-success" />
-                <p className="text-sm text-success font-medium">
-                  Your payment information is encrypted and secure
+                <p className="text-sm text-success font-medium p-2">
+                  برای پرداخت به درگاه مورد تایید بانک مرکزی منتقل خواهید شد.
                 </p>
               </div>
             </div>
@@ -244,18 +322,23 @@ const PaymentStep = ({
           variant="outline"
           onClick={onBack}
           disabled={isProcessing}
-          className="flex-1"
-        >
-          Back
+          className="flex-1">
+          بازگشت
         </Button>
         <Button
           variant="default"
           onClick={handlePayment}
-          disabled={!paymentMethod || isProcessing}
+          disabled={
+            !paymentMethod ||
+            isProcessing ||
+            paymentData.firstName == '' ||
+            paymentData.lastName == ''
+          }
           loading={isProcessing}
-          className="flex-1"
-        >
-          {isProcessing ? 'Processing...' : `Pay ${formatPrice(service.price)}`}
+          className="flex-1">
+          {isProcessing
+            ? 'در حال انجام...'
+            : `پرداخت ${formatPrice(service.rialPrice)}`}
         </Button>
       </div>
     </div>

@@ -13,7 +13,7 @@ const LocationSelectionStep = ({
       id: 'iran',
       name: 'ایران',
       description: 'کاربران ساکن ایران',
-      features: ['امکان ثبت نام و ورود با شماره موبال', 'درگاه پرداخت بانکی'],
+      features: ['امکان ثبت نام و ورود با شماره موبایل', 'درگاه پرداخت بانکی'],
       icon: 'MapPin',
       flag: '🇮🇷',
       authMethods: ['SMS'],
@@ -32,13 +32,14 @@ const LocationSelectionStep = ({
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div dir="rtl" className="p-6 space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          Select Your Location
+          لطفا کشور محل زندگی خود را انتخاب کنید
         </h2>
         <p className="text-muted-foreground">
-          This helps us provide the best authentication and payment options
+          با انتخاب کشور محل زندگی، به ما اجازه میدهید درگاه پرداخت مناسب را
+          برای شما شناسایی کنیم
         </p>
       </div>
 

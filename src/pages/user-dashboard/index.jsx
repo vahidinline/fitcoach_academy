@@ -21,9 +21,9 @@ const UserDashboard = () => {
       id: 1,
       title: 'آموزش اپلیکیشن MyFitnessPal',
       thumbnail:
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+        'https://drupal.iconagency.com.au/files/agency/styles/large/public/2023-04/Mobile_screens.png',
       duration: 1800, // 30 minutes
-      difficulty: t('dashboard.intermediate'),
+      difficulty: t('dashboard.beginner'),
       views: 1250,
       progress: 75,
       completed: false,
@@ -32,101 +32,101 @@ const UserDashboard = () => {
       id: 2,
       title: 'آموزش Hand Size Portion',
       thumbnail:
-        'https://images.pexels.com/photos/416778/pexels-photo-416778.jpeg?w=400&h=300&fit=crop',
+        'https://cdn.shopify.com/s/files/1/0741/7019/files/fullplate_handportionsize.jpg',
       duration: 1200, // 20 minutes
-      difficulty: t('dashboard.beginner'),
+      difficulty: t('dashboard.intermediate'),
       views: 890,
       progress: 100,
       completed: true,
     },
-    {
-      id: 3,
-      title: t('dashboard.coreStrengthening'),
-      thumbnail:
-        'https://images.pixabay.com/photo/2017/08/07/14/02/people-2604149_1280.jpg?w=400&h=300&fit=crop',
-      duration: 900, // 15 minutes
-      difficulty: t('dashboard.advanced'),
-      views: 2100,
-      progress: 0,
-      completed: false,
-    },
-    {
-      id: 4,
-      title: t('dashboard.flexibilityStretching'),
-      thumbnail:
-        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-      duration: 1500, // 25 minutes
-      difficulty: t('dashboard.beginner'),
-      views: 750,
-      progress: 45,
-      completed: false,
-    },
-    {
-      id: 5,
-      title: t('dashboard.hiitFatBurning'),
-      thumbnail:
-        'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?w=400&h=300&fit=crop',
-      duration: 2100, // 35 minutes
-      difficulty: t('dashboard.advanced'),
-      views: 1800,
-      progress: 0,
-      completed: false,
-    },
-    {
-      id: 6,
-      title: t('dashboard.upperBodyPower'),
-      thumbnail:
-        'https://images.pixabay.com/photo/2016/11/19/12/43/barbell-1839086_1280.jpg?w=400&h=300&fit=crop',
-      duration: 1650, // 27.5 minutes
-      difficulty: t('dashboard.intermediate'),
-      views: 1350,
-      progress: 30,
-      completed: false,
-    },
-    {
-      id: 7,
-      title: t('dashboard.legDayIntensive'),
-      thumbnail:
-        'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop',
-      duration: 1950, // 32.5 minutes
-      difficulty: t('dashboard.advanced'),
-      views: 950,
-      progress: 0,
-      completed: false,
-    },
-    {
-      id: 8,
-      title: t('dashboard.recoveryYoga'),
-      thumbnail:
-        'https://images.pexels.com/photos/317157/pexels-photo-317157.jpeg?w=400&h=300&fit=crop',
-      duration: 1800, // 30 minutes
-      difficulty: t('dashboard.beginner'),
-      views: 1100,
-      progress: 100,
-      completed: true,
-    },
-    {
-      id: 9,
-      title: t('dashboard.functionalMovement'),
-      thumbnail:
-        'https://images.pixabay.com/photo/2017/08/07/14/02/man-2604149_1280.jpg?w=400&h=300&fit=crop',
-      duration: 1350, // 22.5 minutes
-      difficulty: t('dashboard.intermediate'),
-      views: 680,
-      progress: 60,
-      completed: false,
-    },
-    {
-      id: 10,
-      title: t('dashboard.athleticPerformance'),
-      thumbnail:
-        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
-      duration: 2400, // 40 minutes
-      difficulty: t('dashboard.advanced'),
-      views: 1450,
-      progress: 0,
-      completed: false,
-    },
+    // {
+    //   id: 3,
+    //   title: t('dashboard.coreStrengthening'),
+    //   thumbnail:
+    //     'https://images.pixabay.com/photo/2017/08/07/14/02/people-2604149_1280.jpg?w=400&h=300&fit=crop',
+    //   duration: 900, // 15 minutes
+    //   difficulty: t('dashboard.advanced'),
+    //   views: 2100,
+    //   progress: 0,
+    //   completed: false,
+    // },
+    // {
+    //   id: 4,
+    //   title: t('dashboard.flexibilityStretching'),
+    //   thumbnail:
+    //     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
+    //   duration: 1500, // 25 minutes
+    //   difficulty: t('dashboard.beginner'),
+    //   views: 750,
+    //   progress: 45,
+    //   completed: false,
+    // },
+    // {
+    //   id: 5,
+    //   title: t('dashboard.hiitFatBurning'),
+    //   thumbnail:
+    //     'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?w=400&h=300&fit=crop',
+    //   duration: 2100, // 35 minutes
+    //   difficulty: t('dashboard.advanced'),
+    //   views: 1800,
+    //   progress: 0,
+    //   completed: false,
+    // },
+    // {
+    //   id: 6,
+    //   title: t('dashboard.upperBodyPower'),
+    //   thumbnail:
+    //     'https://images.pixabay.com/photo/2016/11/19/12/43/barbell-1839086_1280.jpg?w=400&h=300&fit=crop',
+    //   duration: 1650, // 27.5 minutes
+    //   difficulty: t('dashboard.intermediate'),
+    //   views: 1350,
+    //   progress: 30,
+    //   completed: false,
+    // },
+    // {
+    //   id: 7,
+    //   title: t('dashboard.legDayIntensive'),
+    //   thumbnail:
+    //     'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop',
+    //   duration: 1950, // 32.5 minutes
+    //   difficulty: t('dashboard.advanced'),
+    //   views: 950,
+    //   progress: 0,
+    //   completed: false,
+    // },
+    // {
+    //   id: 8,
+    //   title: t('dashboard.recoveryYoga'),
+    //   thumbnail:
+    //     'https://images.pexels.com/photos/317157/pexels-photo-317157.jpeg?w=400&h=300&fit=crop',
+    //   duration: 1800, // 30 minutes
+    //   difficulty: t('dashboard.beginner'),
+    //   views: 1100,
+    //   progress: 100,
+    //   completed: true,
+    // },
+    // {
+    //   id: 9,
+    //   title: t('dashboard.functionalMovement'),
+    //   thumbnail:
+    //     'https://images.pixabay.com/photo/2017/08/07/14/02/man-2604149_1280.jpg?w=400&h=300&fit=crop',
+    //   duration: 1350, // 22.5 minutes
+    //   difficulty: t('dashboard.intermediate'),
+    //   views: 680,
+    //   progress: 60,
+    //   completed: false,
+    // },
+    // {
+    //   id: 10,
+    //   title: t('dashboard.athleticPerformance'),
+    //   thumbnail:
+    //     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
+    //   duration: 2400, // 40 minutes
+    //   difficulty: t('dashboard.advanced'),
+    //   views: 1450,
+    //   progress: 0,
+    //   completed: false,
+    // },
   ];
 
   useEffect(() => {

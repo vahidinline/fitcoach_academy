@@ -13,23 +13,21 @@ const StepIndicator = ({ currentStep, totalSteps, onBack, onExit }) => {
             currentStep === 1
               ? 'text-muted-foreground cursor-not-allowed'
               : 'text-foreground hover:bg-muted'
-          }`}
-        >
+          }`}>
           <Icon name="ArrowLeft" size={20} />
         </button>
 
         {/* Progress Indicator */}
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-foreground">
-            Step {currentStep} of {totalSteps}
+            مرحله {currentStep} از {totalSteps}
           </span>
           <div className="flex space-x-1">
             {Array.from({ length: totalSteps }, (_, index) => (
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full ${
-                  index + 1 <= currentStep
-                    ? 'bg-primary' :'bg-muted'
+                  index + 1 <= currentStep ? 'bg-primary' : 'bg-muted'
                 }`}
               />
             ))}
@@ -39,8 +37,7 @@ const StepIndicator = ({ currentStep, totalSteps, onBack, onExit }) => {
         {/* Exit Button */}
         <button
           onClick={onExit}
-          className="p-2 rounded-lg hover:bg-muted animate-spring text-muted-foreground"
-        >
+          className="p-2 rounded-lg hover:bg-muted animate-spring text-muted-foreground">
           <Icon name="X" size={20} />
         </button>
       </div>

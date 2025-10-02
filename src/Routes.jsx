@@ -12,6 +12,7 @@ import TrainingVideoPlayer from 'pages/training-video-player';
 import PaymentProcessing from 'pages/payment-processing';
 import NotFound from 'pages/NotFound';
 import BasicForm from 'pages/user-basic-data';
+import CallbackRial from 'pages/Callback';
 
 const Routes = () => {
   return (
@@ -22,12 +23,10 @@ const Routes = () => {
           <RouterRoutes>
             {/* Define your routes here */}
             <Route path="/" element={<Login />} />
+            <Route path="/callback" element={<CallbackRial />} />
             <Route path="/login" element={<Login />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
-            <Route
-              path="/registration-stepper"
-              element={<RegistrationStepper />}
-            />
+            <Route path="/register" element={<RegistrationStepper />} />
             <Route
               path="/progress-report-submission"
               element={<ProgressReportSubmission />}
