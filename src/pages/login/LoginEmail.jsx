@@ -39,7 +39,8 @@ const LoginEmail = () => {
     try {
       // Send request to backend to initiate OTP
       const response = await fetch(
-        'https://aziserver.azurewebsites.net/academyAuth/auth',
+        //  'https://aziserver.azurewebsites.net/academyAuth/login',
+        'http://localhost:8080/academyAuth/login',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -48,10 +49,14 @@ const LoginEmail = () => {
       );
 
       const result = await response.json();
+      console.log('result', result);
       if (result.status !== 'ok') {
         throw new Error(result.error || result.message || 'خطا در ارسال OTP');
       }
-
+      if (result.code === 404) {
+        // throw new Error('کاربری با این ایمیل یافت نشد');
+        setError('کاربری با این ایمیل یافت نشد');
+      }
       // Save pending user data for OTP verification
       setPendingUser({ ...authData });
       setShowOtpInput(true); // show OTP input form
