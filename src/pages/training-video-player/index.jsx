@@ -25,8 +25,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه اول آکادمی ',
       description: `توضیحات درباره روند کار در مسیر تناسب اندام`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_01.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/416809/pexels-photo-416809.jpeg',
+      thumbnail: '',
       duration: 49,
       //difficulty: 'Beginner',
       instructor: 'آذی شفیعی',
@@ -89,8 +88,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه دوم',
       description: `همه چیز درباره پروتیین`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_03.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/1552252/pexels-photo-1552252.jpeg',
+      thumbnail: '',
       duration: 35,
       //difficulty: 'Intermediate',
       instructor: 'آذر شفیعی',
@@ -151,8 +149,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه سوم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_03.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 40,
       //difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -210,8 +207,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه چهارم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_04.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 42,
       // difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -275,8 +271,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه پنجم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_05.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 58,
       // difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -347,8 +342,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه ششم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_06.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 42,
       // difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -363,7 +357,7 @@ const TrainingVideoPlayer = () => {
         },
         {
           description: 'hand size portein',
-          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png\n',
+          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png',
         },
       ],
       quiz: [
@@ -401,8 +395,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه هفتم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_07.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 29,
       //difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -413,11 +406,11 @@ const TrainingVideoPlayer = () => {
       attachments: [
         {
           description: 'منابع سبزیجات',
-          url: 'https://backend.fitlinez.com/uploads/vegetables01.jpg\n',
+          url: 'https://backend.fitlinez.com/uploads/vegetables01.jpg',
         },
         {
           description: 'hand size portein',
-          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png\n',
+          url: 'https://backend.fitlinez.com/uploads/handSizePortein.png',
         },
       ],
       additionalLinks: [
@@ -472,8 +465,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه هشتم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_08.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 51,
       //difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -487,8 +479,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه نهم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_09.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 35,
       // difficulty: 'Beginner',
       instructor: 'آذر شفیعی',
@@ -502,8 +493,7 @@ const TrainingVideoPlayer = () => {
       title: 'جلسه دهم',
       description: `همه چیز درباره فیبر`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_10.mp4',
-      thumbnail:
-        'https://images.pexels.com/photos/3757942/pexels-photo-3757942.jpeg',
+      thumbnail: '',
       duration: 53,
       // difficulty: 'Beginner',
       instructor: 'آذر شفیعی',

@@ -101,11 +101,11 @@ const ContextualHeader = () => {
           {config.showLogo && (
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Icon
+                {/* <Icon
                   name="Dumbbell"
                   size={20}
                   className="text-primary-foreground"
-                />
+                /> */}
               </div>
               <span className="text-lg font-semibold text-foreground hidden sm:block">
                 آذی‌شفیعی
@@ -135,7 +135,7 @@ const ContextualHeader = () => {
 
               {/* Notifications */}
               <div className="relative">
-                <button
+                {/* <button
                   onClick={toggleNotifications}
                   className="p-2 rounded-lg hover:bg-muted animate-spring relative">
                   <Icon
@@ -144,7 +144,7 @@ const ContextualHeader = () => {
                     className="text-muted-foreground"
                   />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-                </button>
+                </button> */}
 
                 {/* Notifications Dropdown */}
                 {showNotifications && (

@@ -123,13 +123,13 @@ const BottomTabNavigation = () => {
           {/* Logo Section */}
           <div className="p-6 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              {/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Icon
                   name="Dumbbell"
                   size={20}
                   className="text-primary-foreground"
                 />
-              </div>
+              </div> */}
               <span className="text-xl font-semibold text-foreground">
                 آذی‌شفیعی
               </span>

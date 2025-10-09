@@ -50,11 +50,11 @@ const VideoRecommendations = ({
 
           <div className="flex space-x-4 ">
             <div className="relative w-32 h-20 flex-shrink-0">
-              <Image
+              {/* <Image
                 src={nextVideo.thumbnail}
                 alt={nextVideo.title}
                 className="w-full h-full object-cover rounded-lg"
-              />
+              /> */}
               <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center">
                 <Icon name="Play" size={16} className="text-white" />
               </div>

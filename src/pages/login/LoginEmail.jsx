@@ -4,9 +4,8 @@ import { useAuth } from '../../components/ui/AuthenticationGuard';
 import Icon from '../../components/AppIcon';
 import InternationalAuthForm from './components/InternationalAuthForm';
 import { t } from '../../utils/translations';
-import LoginEmail from './LoginEmail';
 
-const Login = () => {
+const LoginEmail = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
@@ -101,9 +100,68 @@ const Login = () => {
 
   return (
     <div dir="rtl" className="min-h-screen bg-background font-vazir">
-      <LoginEmail />
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 border-b border-border bg-card">
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <Icon
+              name="Dumbbell"
+              size={20}
+              className="text-primary-foreground"
+            />
+          </div>
+          <span className="text-lg font-semibold text-foreground">
+            {t('login.appName')}
+          </span>
+        </div>
+        {/* <LanguageToggle /> */}
+      </header>
+
+      {/* Main */}
+      <main className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
+        <div className="w-full max-w-md">
+          {!showOtpInput ? (
+            // !userLocation ? (
+            //   <LocationDetector onLocationDetected={handleLocationDetected} />
+            // ) : userLocation === 'iran' ? (
+            //   <IranianAuthForm
+            //     onSubmit={handleAuthSubmit}
+            //     isLoading={isLoading}
+            //     error={error}
+            //   />
+            // ) : (
+            <InternationalAuthForm
+              onSubmit={handleAuthSubmit}
+              isLoading={isLoading}
+              error={error}
+            />
+          ) : (
+            //)
+            <div className="bg-card rounded-lg shadow-elevation-1 p-6 border border-border">
+              <h2 className="text-xl font-bold mb-4">کد تایید را وارد کنید</h2>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full p-2 border rounded mb-4"
+                placeholder="کد تایید"
+              />
+              {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+              <button
+                onClick={handleOtpSubmit}
+                disabled={isLoading}
+                className="w-full bg-primary text-white py-2 rounded">
+                {isLoading ? 'در حال تایید...' : 'تایید'}
+              </button>
+            </div>
+          )}
+
+          {/* {userLocation && <TrustSignals userLocation={userLocation} />} */}
+          {/* <AuthFooter /> */}
+        </div>
+      </main>
     </div>
   );
 };
 
-export default Login;
+export default LoginEmail;
