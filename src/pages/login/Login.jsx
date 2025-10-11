@@ -41,8 +41,8 @@ const Login = () => {
     try {
       // Send request to backend to initiate OTP
       const response = await fetch(
-        // 'https://aziserver.azurewebsites.net/academyAuth/login',
-        'http://localhost:8080/academyAuth/login',
+        'https://aziserver.azurewebsites.net/academyAuth/login',
+        //'http://localhost:8080/academyAuth/login',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@ const Login = () => {
     setError('');
     try {
       const response = await fetch(
-        'http://localhost:8080/academyAuth/verify-otp',
+        'https://aziserver.azurewebsites.net/academyAuth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

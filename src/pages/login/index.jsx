@@ -68,7 +68,7 @@ const LoginIndex = () => {
     setError('');
     try {
       const response = await fetch(
-        'http://localhost:8080/academyAuth/verify-otp',
+        'https://aziserver.azurewebsites.net/academyAuth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
