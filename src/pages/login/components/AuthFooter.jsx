@@ -11,7 +11,9 @@ const AuthFooter = () => {
 
   const handleForgotPassword = () => {
     // In a real app, this would open a forgot password modal or navigate to reset page
-    alert('Forgot password functionality will be implemented with email recovery system');
+    alert(
+      'Forgot password functionality will be implemented with email recovery system'
+    );
   };
 
   return (
@@ -19,16 +21,15 @@ const AuthFooter = () => {
       {/* Register Link */}
       <div className="text-center">
         <p className="text-sm text-muted-foreground mb-3">
-          Don't have an account?
+          حساب کاربری ندارید؟
         </p>
         <Button
           variant="outline"
           fullWidth
           onClick={handleRegisterClick}
           iconName="UserPlus"
-          iconPosition="left"
-        >
-          Create New Account
+          iconPosition="left">
+          ثبت نام
         </Button>
       </div>
 
@@ -36,16 +37,16 @@ const AuthFooter = () => {
       <div className="text-center">
         <button
           onClick={handleForgotPassword}
-          className="text-sm text-primary hover:text-primary/80 animate-spring underline"
-        >
-          Forgot your password?
+          className="text-sm text-primary hover:text-primary/80 animate-spring underline">
+          رمز عبور را فراموش کرده‌اید؟
         </button>
       </div>
 
       {/* Additional Info */}
       <div className="text-center pt-4">
         <p className="text-xs text-muted-foreground">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          با ورود به سیستم، شما با شرایط خدمات و سیاست حفظ حریم خصوصی ما موافقت
+          می‌کنید
         </p>
       </div>
     </div>

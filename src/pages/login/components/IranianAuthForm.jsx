@@ -8,7 +8,7 @@ const IranianAuthForm = ({ onSubmit, isLoading, error }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+98');
   const [validationError, setValidationError] = useState('');
-
+  console.log('phoneNumber', phoneNumber);
   const countryCodeOptions = [{ value: '+98', label: '+98 (Iran)' }];
 
   const validatePhoneNumber = (phone) => {
@@ -34,37 +34,41 @@ const IranianAuthForm = ({ onSubmit, isLoading, error }) => {
     }
 
     onSubmit({
-      phoneNumber: countryCode + phoneNumber.substring(1), // Replace 0 with country code
+      phoneNumber: phoneNumber, // Replace 0 with country code
       method: 'sms',
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center mb-6">
+      <div dir="rtl" className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
           ورود به حساب کاربری
         </h2>
-        <p className="text-muted-foreground">شماره موبایل خود را وارد کنید</p>
+        <p className="text-muted-foreground">
+          ورود به حساب کاربری از طریق شماره موبایل فقط برای ساکنان ایران فعال
+          است
+        </p>
       </div>
 
       <Select
-        label="Country Code"
+        label="کد کشور"
         options={countryCodeOptions}
         value={countryCode}
         onChange={setCountryCode}
         className="mb-4"
+        disabled
       />
 
       <Input
-        label="Mobile Number"
+        label="شماره موبایل"
         type="tel"
         placeholder="09123456789"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
         error={validationError}
         required
-        className="text-left"
+        className="text-right"
         dir="ltr"
       />
 
@@ -84,7 +88,7 @@ const IranianAuthForm = ({ onSubmit, isLoading, error }) => {
         loading={isLoading}
         iconName="Send"
         iconPosition="right">
-        {isLoading ? 'Sending OTP...' : 'Send OTP'}
+        {isLoading ? 'در حال ارسال...' : 'ارسال کد تایید'}
       </Button>
 
       <div className="text-center">

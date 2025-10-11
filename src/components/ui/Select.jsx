@@ -113,12 +113,12 @@ const Select = React.forwardRef(
       : value !== undefined && value !== '';
 
     return (
-      <div className={cn('relative', className)}>
+      <div dir="rtl" className={cn('relative', className)}>
         {label && (
           <label
             htmlFor={selectId}
             className={cn(
-              'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block border-t pt-2 pb-1',
+              'text-sm font-medium text-right leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block border-t pt-2 pb-1',
               error ? 'text-destructive' : 'text-foreground'
             )}>
             {label}

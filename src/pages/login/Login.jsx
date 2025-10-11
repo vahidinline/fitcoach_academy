@@ -4,8 +4,9 @@ import { useAuth } from '../../components/ui/AuthenticationGuard';
 import Icon from '../../components/AppIcon';
 import InternationalAuthForm from './components/InternationalAuthForm';
 import { t } from '../../utils/translations';
+import IranianAuthForm from './components/IranianAuthForm';
 
-const LoginEmail = () => {
+const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
@@ -15,7 +16,7 @@ const LoginEmail = () => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState('');
   const [pendingUser, setPendingUser] = useState(null); // store data for OTP verify
-
+  console.log('pendingUser', pendingUser);
   useEffect(() => {
     const handleLanguageChange = (event) => {
       setCurrentLanguage(event.detail);
@@ -33,13 +34,14 @@ const LoginEmail = () => {
   const handleLocationDetected = (location) => setUserLocation(location);
 
   const handleAuthSubmit = async (authData) => {
+    console.log('authData', authData);
     setIsLoading(true);
     setError('');
 
     try {
       // Send request to backend to initiate OTP
       const response = await fetch(
-        //  'https://aziserver.azurewebsites.net/academyAuth/login',
+        // 'https://aziserver.azurewebsites.net/academyAuth/login',
         'http://localhost:8080/academyAuth/login',
         {
           method: 'POST',
@@ -72,12 +74,13 @@ const LoginEmail = () => {
     setError('');
     try {
       const response = await fetch(
-        'https://aziserver.azurewebsites.net/academyAuth/verify-otp',
+        'http://localhost:8080/academyAuth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: pendingUser.email,
+            phone: pendingUser.phoneNumber,
             otp,
           }),
         }
@@ -106,42 +109,47 @@ const LoginEmail = () => {
   return (
     <div dir="rtl" className="min-h-screen bg-background font-vazir">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border bg-card">
-        <div className="flex items-center space-x-3 rtl:space-x-reverse">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Icon
-              name="Dumbbell"
-              size={20}
-              className="text-primary-foreground"
-            />
-          </div>
-          <span className="text-lg font-semibold text-foreground">
-            {t('login.appName')}
-          </span>
-        </div>
-        {/* <LanguageToggle /> */}
-      </header>
 
       {/* Main */}
       <main className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
         <div className="w-full max-w-md">
           {!showOtpInput ? (
-            // !userLocation ? (
-            //   <LocationDetector onLocationDetected={handleLocationDetected} />
-            // ) : userLocation === 'iran' ? (
-            //   <IranianAuthForm
-            //     onSubmit={handleAuthSubmit}
-            //     isLoading={isLoading}
-            //     error={error}
-            //   />
-            // ) : (
-            <InternationalAuthForm
-              onSubmit={handleAuthSubmit}
-              isLoading={isLoading}
-              error={error}
-            />
+            <>
+              {/* name of each tab group should be unique */}
+              <div className="tabs tabs-border">
+                <input
+                  type="radio"
+                  name="my_tabs_2"
+                  className="tab"
+                  aria-label="ورود با ایمیل"
+                />
+                <div className="tab-content border-base-300 bg-base-100 p-10">
+                  {' '}
+                  <InternationalAuthForm
+                    onSubmit={handleAuthSubmit}
+                    isLoading={isLoading}
+                    error={error}
+                  />
+                </div>
+
+                <input
+                  type="radio"
+                  name="my_tabs_2"
+                  className="tab"
+                  aria-label="ورود با موبایل"
+                  defaultChecked
+                />
+                <div className="tab-content border-base-300 bg-base-100 p-10">
+                  {' '}
+                  <IranianAuthForm
+                    onSubmit={handleAuthSubmit}
+                    isLoading={isLoading}
+                    error={error}
+                  />
+                </div>
+              </div>
+            </>
           ) : (
-            //)
             <div className="bg-card rounded-lg shadow-elevation-1 p-6 border border-border">
               <h2 className="text-xl font-bold mb-4">کد تایید را وارد کنید</h2>
               <input
@@ -160,13 +168,10 @@ const LoginEmail = () => {
               </button>
             </div>
           )}
-
-          {/* {userLocation && <TrustSignals userLocation={userLocation} />} */}
-          {/* <AuthFooter /> */}
         </div>
       </main>
     </div>
   );
 };
 
-export default LoginEmail;
+export default Login;

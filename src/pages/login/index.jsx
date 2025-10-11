@@ -4,9 +4,9 @@ import { useAuth } from '../../components/ui/AuthenticationGuard';
 import Icon from '../../components/AppIcon';
 import InternationalAuthForm from './components/InternationalAuthForm';
 import { t } from '../../utils/translations';
-import LoginEmail from './LoginEmail';
+import Login from './Login';
 
-const Login = () => {
+const LoginIndex = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
@@ -68,7 +68,7 @@ const Login = () => {
     setError('');
     try {
       const response = await fetch(
-        'https://aziserver.azurewebsites.net/academyAuth/verify-otp',
+        'http://localhost:8080/academyAuth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -101,9 +101,9 @@ const Login = () => {
 
   return (
     <div dir="rtl" className="min-h-screen bg-background font-vazir">
-      <LoginEmail />
+      <Login />
     </div>
   );
 };
 
-export default Login;
+export default LoginIndex;
