@@ -7,6 +7,7 @@ function ZarinpalCallback() {
   const authority = searchParams.get('Authority'); // زرین پال اینو پس میده
   const status = searchParams.get('Status'); // OK یا NOK
   const [message, setMessage] = useState('در حال بررسی پرداخت...');
+  const [reTry, setRetry] = useState(false);
 
   useEffect(() => {
     if (status !== 'OK') {
@@ -39,16 +40,28 @@ function ZarinpalCallback() {
         // navigate("/dashboard");
       } else {
         setMessage('❌ پرداخت ناموفق بود');
+        setRetry(true);
       }
     } catch (err) {
       console.error(err);
       setMessage('⚠️ خطا در ارتباط با سرور');
+      setRetry(true);
     }
   };
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h2>{message}</h2>
+      <>{reTry}</>
+      {reTry && (
+        <button
+          className="btn btn-primary mt-4"
+          onClick={() =>
+            (window.location.href = 'https://academy.azishafiei.com/register')
+          }>
+          تلاش مجدد
+        </button>
+      )}
     </div>
   );
 }
