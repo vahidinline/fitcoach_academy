@@ -9,7 +9,6 @@ export const useAuthStore = create(
       selectedService: '',
       selectedServicePrice: '',
       selectedServiceRialPrice: '',
-
       selectedServiceName: '',
       selectedLocation: '',
       selectedAuthMethod: '',

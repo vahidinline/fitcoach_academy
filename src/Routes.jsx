@@ -14,6 +14,7 @@ import NotFound from 'pages/NotFound';
 import BasicForm from 'pages/user-basic-data';
 import CallbackRial from 'pages/Callback';
 import LoginIndex from 'pages/login';
+import CertificateIndex from 'pages/Certificate';
 
 const Routes = () => {
   return (
@@ -42,6 +43,10 @@ const Routes = () => {
               element={<TrainingVideoPlayer />}
             />
             <Route path="/user-basic-data" element={<BasicForm />} />
+            <Route
+              path="/request-for-certificate"
+              element={<CertificateIndex />}
+            />
             <Route path="/payment-processing" element={<PaymentProcessing />} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>

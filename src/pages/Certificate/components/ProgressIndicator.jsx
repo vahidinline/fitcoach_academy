@@ -4,8 +4,9 @@ import Icon from '../../../components/AppIcon';
 const ProgressIndicator = ({ currentStep, totalSteps }) => {
   const steps = [
     { id: 1, label: 'انتخاب', icon: 'ShoppingCart' },
-    { id: 2, label: 'پرداخت', icon: 'CreditCard' },
-    { id: 3, label: 'تأیید', icon: 'CheckCircle' },
+    { id: 2, label: 'ورود اطلاعات', icon: '' },
+    { id: 3, label: 'پرداخت', icon: 'CreditCard' },
+    { id: 4, label: 'تأیید', icon: 'CheckCircle' },
   ];
 
   return (

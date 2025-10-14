@@ -11,6 +11,7 @@ function ZarinpalCallback() {
 
   useEffect(() => {
     if (status !== 'OK') {
+      setRetry(true);
       setMessage('پرداخت لغو شد یا ناموفق بود');
       return;
     }

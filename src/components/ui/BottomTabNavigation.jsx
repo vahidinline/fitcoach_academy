@@ -42,11 +42,18 @@ const BottomTabNavigation = () => {
     // },
     // {
     //   id: 'payment',
-    //   label: 'Payment',
+    //   label: 'پرداخت',
     //   path: '/payment-processing',
     //   icon: 'CreditCard',
     //   badge: null,
     // },
+    {
+      id: 'certificate',
+      label: 'سرتیفیکیت',
+      path: '/request-for-certificate',
+      icon: 'Certificate',
+      badge: null,
+    },
   ];
 
   const handleLogout = () => {

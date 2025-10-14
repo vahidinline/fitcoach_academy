@@ -14,29 +14,61 @@ const PaymentProcessing = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  
-  const [userLocation, setUserLocation] = useState('international');
+
+  const [userLocation, setUserLocation] = useState('iran');
   const [paymentStatus, setPaymentStatus] = useState('idle'); // idle, processing, success, error
   const [transactionId, setTransactionId] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [services, setServices] = useState([
+    {
+      type: 'certificate',
+      name: 'Nutrition Coaching Program',
+      label: ' صدور گواهی نوتریشن',
+      description:
+        'Complete fitness coaching program with personalized training plans',
+      duration: '',
+      originalPrice: 49,
+      rialPrice: 5500000,
+      currency: userLocation === 'iran' ? 'IRR' : 'EUR',
+      isTrial: false,
+    },
+  ]);
 
   // Mock service data - in real app, this would come from route state or API
-  const [selectedService] = useState({
-    type: 'academy',
-    name: 'Academy Course',
-    description: 'Complete fitness coaching program with personalized training plans',
-    duration: '3 Months',
-    originalPrice: 299,
-    isTrial: false
-  });
+  const [selectedService] = useState([
+    {
+      type: 'certificate',
+      name: 'Nutrition Coaching Program',
+      label: ' صدور گواهی نوتریشن',
+      description:
+        'Complete fitness coaching program with personalized training plans',
+      duration: '',
+      originalPrice: 49,
+      rialPrice: 5500000,
+      currency: userLocation === 'iran' ? 'IRR' : 'EUR',
+      isTrial: false,
+    },
+    {
+      type: 'extra-report',
+      name: 'Extra Progress Report',
+      label: ' کوچینگ و دریافت برنامه ',
+
+      description: ' ارسال گزارش پیشرفت و دریافت برنامه تمرینی و غذایی اختصاصی',
+      duration: '',
+      originalPrice: 49,
+      rialPrice: 5500000,
+      currency: userLocation === 'iran' ? 'IRR' : 'EUR',
+      isTrial: false,
+    },
+  ]);
 
   const [pricing] = useState({
-    basePrice: 249,
+    basePrice: 49,
     tax: userLocation === 'international' ? 24.9 : 0,
-    processingFee: userLocation === 'international' ? 5 : 10000 // IRR for Iran
+    processingFee: userLocation === 'international' ? 5 : 10000, // IRR for Iran
   });
 
   // Detect user location on component mount
@@ -50,7 +82,7 @@ const PaymentProcessing = () => {
         setUserLocation('international');
       }
     };
-    
+
     detectLocation();
   }, []);
 
@@ -63,9 +95,9 @@ const PaymentProcessing = () => {
   const handleApplyPromo = () => {
     // Mock promo code validation
     const validPromoCodes = {
-      'SAVE20': 0.2,
-      'NEWUSER': 0.15,
-      'FITNESS10': 0.1
+      SAVE20: 0.2,
+      NEWUSER: 0.15,
+      FITNESS10: 0.1,
     };
 
     if (validPromoCodes[promoCode.toUpperCase()]) {
@@ -85,21 +117,24 @@ const PaymentProcessing = () => {
 
     try {
       // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Mock payment success/failure
       const isSuccess = Math.random() > 0.1; // 90% success rate
 
       if (isSuccess) {
-        const mockTransactionId = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const mockTransactionId =
+          'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         setTransactionId(mockTransactionId);
         setPaymentStatus('success');
-        
+
         // Store payment success in localStorage for demo
         localStorage.setItem('paymentCompleted', 'true');
         localStorage.setItem('transactionId', mockTransactionId);
       } else {
-        throw new Error('Payment declined by your bank. Please try a different payment method.');
+        throw new Error(
+          'Payment declined by your bank. Please try a different payment method.'
+        );
       }
     } catch (error) {
       setPaymentError(error.message);
@@ -123,7 +158,7 @@ const PaymentProcessing = () => {
   return (
     <div className="min-h-screen bg-background">
       <ContextualHeader />
-      
+
       <main className="pt-16 pb-20 lg:pb-8 lg:pl-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Progress Indicator */}
@@ -136,11 +171,13 @@ const PaymentProcessing = () => {
                 <Icon name="Shield" size={24} className="text-success" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Secure Payment</h1>
-                <p className="text-muted-foreground">Complete your purchase safely and securely</p>
+                <h1 className="text-2xl font-bold text-foreground">پرداخت</h1>
+                <p className="text-muted-foreground">
+                  Complete your purchase safely and securely
+                </p>
               </div>
             </div>
-            
+
             {/* Security Badges */}
             <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
               <div className="flex items-center space-x-1">
@@ -173,7 +210,11 @@ const PaymentProcessing = () => {
               {paymentError && paymentStatus !== 'error' && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
-                    <Icon name="AlertCircle" size={16} className="text-destructive" />
+                    <Icon
+                      name="AlertCircle"
+                      size={16}
+                      className="text-destructive"
+                    />
                     <p className="text-sm text-destructive">{paymentError}</p>
                   </div>
                 </div>
