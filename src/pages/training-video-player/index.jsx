@@ -690,7 +690,10 @@ const TrainingVideoPlayer = () => {
             </div>
 
             {/* Comments Section - Mobile */}
-            <SessionQuiz quiz={currentVideo.quiz} />
+
+            {currentVideo.quiz && currentVideo.quiz.length > 0 && (
+              <SessionQuiz quiz={currentVideo.quiz} />
+            )}
             {/* <div className="lg:hidden p-4">
               <CommentsSection
                 comments={comments}

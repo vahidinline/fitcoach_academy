@@ -18,6 +18,12 @@ const LoginIndex = () => {
   const [pendingUser, setPendingUser] = useState(null); // store data for OTP verify
 
   useEffect(() => {
+    if (localStorage.getItem('userData')) {
+      navigate('/user-dashboard');
+    }
+  }, []);
+
+  useEffect(() => {
     const handleLanguageChange = (event) => {
       setCurrentLanguage(event.detail);
     };
@@ -88,6 +94,7 @@ const LoginIndex = () => {
       const loginResult = await login(result.userData);
       console.log('loginResult', loginResult);
       if (loginResult.success) {
+        localStorage.setItem('userData', JSON.stringify(result.userData));
         navigate('/user-dashboard');
       } else {
         setError(loginResult.error || 'احراز هویت ناموفق بود');
