@@ -87,7 +87,7 @@ const TrainingVideoPlayer = () => {
       id: '2',
       title: 'جلسه دوم',
       description: `همه چیز درباره پروتیین`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_03.mp4',
+      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_02.mp4',
       thumbnail: '',
       duration: 35,
       //difficulty: 'Intermediate',
@@ -205,7 +205,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '4',
       title: 'جلسه چهارم',
-      description: `همه چیز درباره فیبر`,
+      description: `همه چیز درباره کربوهیدرات و قندها`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_04.mp4',
       thumbnail: '',
       duration: 42,
@@ -269,7 +269,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '5',
       title: 'جلسه پنجم',
-      description: `همه چیز درباره فیبر`,
+      description: `همه چیز درباره خواب و آب`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_05.mp4',
       thumbnail: '',
       duration: 58,
@@ -340,7 +340,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '6',
       title: 'جلسه ششم',
-      description: `همه چیز درباره فیبر`,
+      description: `همه چیز درباره چربی ها`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_06.mp4',
       thumbnail: '',
       duration: 42,
@@ -393,7 +393,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '7',
       title: 'جلسه هفتم',
-      description: `همه چیز درباره فیبر`,
+      description: `سبزیجات و hand size portion`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_07.mp4',
       thumbnail: '',
       duration: 29,
@@ -463,7 +463,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '8',
       title: 'جلسه هشتم',
-      description: `همه چیز درباره فیبر`,
+      description: `بررسی و مقایسه انواع رژیم های روز دنیا`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_08.mp4',
       thumbnail: '',
       duration: 51,
@@ -477,7 +477,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '9',
       title: 'جلسه نهم',
-      description: `همه چیز درباره فیبر`,
+      description: `همه چیز درباره مکمل های ضروری و غیر ضروری`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_09.mp4',
       thumbnail: '',
       duration: 35,
@@ -491,7 +491,7 @@ const TrainingVideoPlayer = () => {
     {
       id: '10',
       title: 'جلسه دهم',
-      description: `همه چیز درباره فیبر`,
+      description: `جمع بندی مطالب، مثال عینی طراحی یک برنامه ی غذایی محاسبه کالری و چینش درصد ماکرویی ⁠هرم های تغذیه، پروتیین و کالری خروجی ⁠و منحنی یادگیری`,
       videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_10.mp4',
       thumbnail: '',
       duration: 53,

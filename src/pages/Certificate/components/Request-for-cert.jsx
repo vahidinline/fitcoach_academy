@@ -23,7 +23,7 @@ export default function CertificateForm({ clientId, type }) {
       setErrorMsg('نام و نام خانوادگی را وارد کنید.');
       return false;
     }
-    if (!passport.trim()) {
+    if (!passport.trim() && type === 'nutrition') {
       setErrorMsg('شماره پاسپورت را وارد کنید.');
       return false;
     }

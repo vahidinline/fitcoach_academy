@@ -89,11 +89,11 @@ const AuthMethodStep = ({
         <h2 className="text-2xl font-semibold text-foreground mb-2">
           انتخاب روش احراز هویت
         </h2>
-        <p className="text-muted-foreground">
+        {/* <p className="text-muted-foreground">
           {selectedLocation === 'iran'
             ? 'Secure SMS verification for Iranian users'
             : 'Select your preferred verification method'}
-        </p>
+        </p> */}
       </div>
 
       <div className="space-y-4">
@@ -166,7 +166,7 @@ const AuthMethodStep = ({
                               ? 'شماره موبایل خود را وارد کنید (09xxxxxxxxx)'
                               : method.inputType === 'tel'
                               ? 'شماره موبایل خود را به همراه کد کشور وارد کنید'
-                              : 'ارسال کد به ایمیل'
+                              : 'کد به ایمیل وارد شده ارسال میشود'
                           }
                         />
                       )}
