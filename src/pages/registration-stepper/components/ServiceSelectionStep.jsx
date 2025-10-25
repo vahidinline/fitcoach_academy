@@ -16,7 +16,7 @@ const ServiceSelectionStep = ({
         <span className="loading loading-spinner text-primary"></span>
 
         <p dir="rtl" className="text-muted-foreground">
-          در حال بارگذاری محصولات...
+          در حال بارگذاری دوره ها...
         </p>
       </div>
     </div>
@@ -24,7 +24,7 @@ const ServiceSelectionStep = ({
     <div dir="rtl" className="p-6 space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          لطفا یک محصول را انتخاب کنید
+          لطفا یک دوره را انتخاب کنید
         </h2>
         <p className="text-muted-foreground"></p>
       </div>

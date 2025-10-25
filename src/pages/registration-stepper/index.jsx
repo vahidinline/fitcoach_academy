@@ -250,10 +250,23 @@ const RegistrationStepper = () => {
         onExit={handleExit}
       />
       <div className="max-w-md mx-auto">{renderCurrentStep()}</div>
+      <div className="fab">
+        {/* a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
+        <div tabIndex={0} role="button" className="btn btn-lg bg-orange-300">
+          ?
+        </div>
+
+        {/* buttons that show up when FAB is open */}
+        <button
+          onClick={() => window.open('https://t.me/fitlinezsupport', '_blank')}
+          className="btn btn-lg rounde-lg bg-green-300 p-2">
+          تماس با پشتیبانی تلگرام
+        </button>
+      </div>
       {error && (
         <div dir="rtl" className="alert alert-error mt-4">
           <span className="text-white">{error}</span>
-          <button onClick={() => setError('')} className="btn btn-sm">
+          <button onClick={() => setError('')} className="btn btn-sm ">
             بستن
           </button>
         </div>
