@@ -121,15 +121,15 @@ const PaymentStep = ({ onComplete, onBack, onSkipTrial }) => {
     }
   }, []);
 
-  // console.log(
-  //   'Payment data:',
-  //   selectedService,
-  //   selectedLocation,
-  //   selectedServicePrice,
-  //   selectedServiceName,
-  //   selectedServiceRialPrice,
-  //   contactInfo
-  // );
+  console.log(
+    'Payment data:',
+    selectedService,
+    selectedLocation,
+    selectedServicePrice,
+    selectedServiceName,
+    selectedServiceRialPrice,
+    contactInfo
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -137,10 +137,10 @@ const PaymentStep = ({ onComplete, onBack, onSkipTrial }) => {
         <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <Icon name="CreditCard" size={32} className="text-success" />
         </div>
-        <h2 className="text-2xl font-semibold text-foreground mb-2">
-          نهایی کردن خرید
-        </h2>
-        <p className="text-muted-foreground">پرداخت امن</p>
+        <h2 className="text-2xl font-semibold text-foreground mb-2">پرداخت</h2>
+        <p className="text-muted-foreground">
+          {selectedServiceName.displayName}
+        </p>
       </div>
 
       {/* Service Summary */}
@@ -182,8 +182,12 @@ const PaymentStep = ({ onComplete, onBack, onSkipTrial }) => {
             {selectedLocation === 'international' &&
               paymentMethod === 'stripe' && (
                 <div className="flex justify-center">
+                  <script
+                    async
+                    src="https://js.stripe.com/v3/buy-button.js"></script>
+
                   <stripe-buy-button
-                    buy-button-id="buy_btn_1SGzPRLvdXYGADCcwZEnG2Au"
+                    buy-button-id="buy_btn_1SM1OxLvdXYGADCcLewgqzDT"
                     publishable-key="pk_live_51O9uPPLvdXYGADCcTWSsikqwZStf2uKsh11X9PYtmmav0hRwbmHeOy24I9RUpHzNqLXPGk5rJnHXHmai0ypbuCiU00lXfhDJxb"></stripe-buy-button>
                 </div>
               )}

@@ -150,15 +150,15 @@ const LocationSelectionStep = ({
       </div>
 
       <div className="flex space-x-3 pt-4">
-        <Button variant="outline" onClick={onBack} className="flex-1">
-          بازگشت
-        </Button>
         <Button
           variant="default"
           onClick={onContinue}
           disabled={!selectedLocation}
           className="flex-1">
           ادامه
+        </Button>
+        <Button variant="outline" onClick={onBack} className="flex-1">
+          بازگشت
         </Button>
       </div>
     </div>

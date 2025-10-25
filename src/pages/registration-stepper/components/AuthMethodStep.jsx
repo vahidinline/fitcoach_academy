@@ -199,10 +199,7 @@ const AuthMethodStep = ({
         </div>
       )}
 
-      <div className="flex space-x-3 pt-4">
-        <Button variant="outline" onClick={onBack} className="flex-1">
-          برگشت
-        </Button>
+      <div className="flex space-x-3 pt-4 ">
         <Button
           variant="default"
           onClick={() => {
@@ -212,7 +209,10 @@ const AuthMethodStep = ({
           disabled={loading || !selectedAuthMethod || !validateContactInfo()}
           //disabled={!selectedAuthMethod || !validateContactInfo()}
           className="flex-1">
-          احراز هویت
+          ادامه
+        </Button>{' '}
+        <Button variant="outline" onClick={onBack} className="flex-1">
+          برگشت
         </Button>
       </div>
     </div>
