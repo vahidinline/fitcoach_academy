@@ -28,7 +28,7 @@ const BottomTabNavigation = () => {
       id: 'basic-data',
       label: 'اطلاعات اولیه',
       path: '/user-basic-data',
-      icon: 'Info',
+      icon: 'UserRoundPen',
       badge: null,
       status: 'active',
     },
@@ -51,9 +51,17 @@ const BottomTabNavigation = () => {
       id: 'certificate',
       label: 'سرتیفیکیت',
       path: '/request-for-certificate',
-      icon: 'Certificate',
+      icon: 'ShieldCheck',
       badge: null,
+      status: 'deActivated',
     },
+    // {
+    //   id: 'telegram',
+    //   label: 'عضویت در تلگرام',
+    //   path: 'https://t.me/+6oHMFATMqqFkMGI0',
+    //   icon: 'Users',
+    //   badge: null,
+    // },
   ];
 
   const handleLogout = () => {
@@ -138,7 +146,7 @@ const BottomTabNavigation = () => {
                 />
               </div> */}
               <span className="text-xl font-semibold text-foreground">
-                آذی‌شفیعی
+                آکادمی آذر شفیعی
               </span>
             </div>
           </div>

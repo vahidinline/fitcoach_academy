@@ -15,6 +15,7 @@ import BasicForm from 'pages/user-basic-data';
 import CallbackRial from 'pages/Callback';
 import LoginIndex from 'pages/login';
 import CertificateIndex from 'pages/Certificate';
+import Quiz from 'pages/Quiz';
 
 const Routes = () => {
   return (
@@ -25,6 +26,7 @@ const Routes = () => {
           <RouterRoutes>
             {/* Define your routes here */}
             <Route path="/" element={<LoginIndex />} />
+            <Route path="/quiz" element={<Quiz />} />
             <Route path="/callback" element={<CallbackRial />} />
             <Route path="/login" element={<LoginIndex />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />

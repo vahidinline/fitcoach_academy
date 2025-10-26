@@ -1,8 +1,10 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
+import { useNavigate } from 'react-router-dom';
+import { UserRoundPen, Users } from 'lucide-react';
 
 const UserStatusCard = ({ user, trialDaysRemaining }) => {
-  console.log('user in Status Card', user);
+  const navigate = useNavigate();
   const getStatusConfig = () => {
     switch (user.status) {
       case 'active':
@@ -62,6 +64,56 @@ const UserStatusCard = ({ user, trialDaysRemaining }) => {
           <span className={`text-sm font-medium ${statusConfig.color}`}>
             {statusConfig.label}
           </span>
+          {user.status === 'active' && (
+            <div className="text-center flex flex-row items-center">
+              <button
+                onClick={() =>
+                  window.open('https://t.me/+6oHMFATMqqFkMGI0', '_blank')
+                }
+                className="btn bg-success px-1 text-white flex items-center  space-x-2">
+                <Users />
+                عضویت در گروه تلگرام
+                {/* <svg
+                  width="64px"
+                  height="64px"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    {' '}
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="14"
+                      fill="url(#paint0_linear_87_7225)"></circle>{' '}
+                    <path
+                      d="M22.9866 10.2088C23.1112 9.40332 22.3454 8.76755 21.6292 9.082L7.36482 15.3448C6.85123 15.5703 6.8888 16.3483 7.42147 16.5179L10.3631 17.4547C10.9246 17.6335 11.5325 17.541 12.0228 17.2023L18.655 12.6203C18.855 12.4821 19.073 12.7665 18.9021 12.9426L14.1281 17.8646C13.665 18.3421 13.7569 19.1512 14.314 19.5005L19.659 22.8523C20.2585 23.2282 21.0297 22.8506 21.1418 22.1261L22.9866 10.2088Z"
+                      fill="white"></path>{' '}
+                    <defs>
+                      {' '}
+                      <linearGradient
+                        id="paint0_linear_87_7225"
+                        x1="16"
+                        y1="2"
+                        x2="16"
+                        y2="30"
+                        gradientUnits="userSpaceOnUse">
+                        {' '}
+                        <stop stop-color="#37BBFE"></stop>{' '}
+                        <stop offset="1" stop-color="#007DBB"></stop>{' '}
+                      </linearGradient>{' '}
+                    </defs>{' '}
+                  </g>
+                </svg> */}
+                <p className="text-sm text-warning font-medium"></p>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -72,20 +124,6 @@ const UserStatusCard = ({ user, trialDaysRemaining }) => {
           </p>
           {/* <p className="text-sm text-muted-foreground">عضویت</p> */}
         </div>
-        {user.status === 'trial' && trialDaysRemaining !== null && (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-warning">
-              {trialDaysRemaining}
-            </p>
-            <p className="text-sm text-muted-foreground">روز باقیمانده</p>
-          </div>
-        )}
-        {user.status === 'active' && (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-success">∞</p>
-            <p className="text-sm text-muted-foreground">دسترسی نامحدود </p>
-          </div>
-        )}
       </div>
 
       {user.status === 'trial' && trialDaysRemaining <= 3 && (
@@ -98,6 +136,8 @@ const UserStatusCard = ({ user, trialDaysRemaining }) => {
           </div>
         </div>
       )}
+
+      <div className="mt-4 p-3  rounded-lg"></div>
     </div>
   );
 };

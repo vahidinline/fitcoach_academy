@@ -138,72 +138,9 @@ const ContextualHeader = () => {
                 />
               </button> */}
 
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  onClick={toggleNotifications}
-                  className="p-2 rounded-lg hover:bg-muted animate-spring relative">
-                  <Icon
-                    name="Bell"
-                    size={20}
-                    className="text-muted-foreground"
-                  />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-                </button>
-
-                {/* Notifications Dropdown */}
-                {showNotifications && (
-                  <div className="absolute right-0 top-12 w-80 bg-popover border border-border rounded-lg shadow-elevation-2 z-300">
-                    <div className="p-4 border-b border-border">
-                      <h3 className="font-semibold text-popover-foreground">
-                        اعلان‌ها
-                      </h3>
-                    </div>
-                    {/* <div className="max-h-64 overflow-y-auto">
-                      <div className="p-4 border-b border-border hover:bg-muted animate-spring">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-popover-foreground"></p>
-                            <p className="text-xs text-muted-foreground mt-1">
-
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              2 hours ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 border-b border-border hover:bg-muted animate-spring">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-muted rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-popover-foreground">
-                              Progress report reviewed
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Your coach has provided feedback on your latest
-                              submission
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              1 day ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div> */}
-                    {/* <div className="p-3 border-t border-border">
-                      <button className="text-sm text-primary hover:text-primary/80 animate-spring">
-                        View all notifications
-                      </button>
-                    </div> */}
-                  </div>
-                )}
-              </div>
-
               {/* User Avatar */}
               <div className="flex items-center space-x-2 ml-2">
-                <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                {/* <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
                   <button
                     onClick={toggleAccount}
                     className="p-2 rounded-lg hover:bg-muted animate-spring relative">
@@ -213,7 +150,7 @@ const ContextualHeader = () => {
                       className="text-secondary-foreground"
                     />
                   </button>
-                </div>
+                </div> */}
 
                 {accountDetails &&
                   {
