@@ -1,5 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import api from 'api/api';
+import BottomTabNavigation from 'components/ui/BottomTabNavigation';
+import { useNavigationBlocker } from './components/NavigationBlocker';
+import { useNavigate } from 'react-router-dom';
+import FailedModal from './components/FailedModal';
+import GuideModal from './components/GuideModal';
+import Header from './components/Header';
+import QuizSection from './components/QuizSection';
+import SuccessModal from './components/SuccessModal';
 
 export default function Quiz() {
   const [quiz, setQuiz] = useState([]);
@@ -14,11 +22,35 @@ export default function Quiz() {
   const [timeLeft, setTimeLeft] = useState(1800); // 30 min
   const [banTimeLeft, setBanTimeLeft] = useState(0); // seconds
   const [canRetry, setCanRetry] = useState(false);
+  const [isPassed, setIsPassed] = useState();
+  const navigate = useNavigate();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const userId = '22323';
+  const [userId, setUserId] = useState(() => {
+    // try to get from localStorage or generate new
+    let user = localStorage.getItem('userData');
+    if (user) {
+      try {
+        user = JSON.parse(user);
+        if (user && user.id) {
+          return user.id;
+        }
+      } catch (e) {
+        console.error('Error parsing userData from localStorage', e);
+      }
+    }
+  });
+
   const banTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
+  useNavigationBlocker(
+    quizStarted && score === null,
+    'شما هنوز آزمون خود را ارسال نکرده‌اید. آیا مطمئن هستید که می‌خواهید خارج شوید؟'
+  );
 
+  useEffect(() => {
+    const user = localStorage.setItem('quizUserId', userId);
+  }, []);
   // fetch on mount
   useEffect(() => {
     let mounted = true;
@@ -59,6 +91,15 @@ export default function Quiz() {
 
         if (!mounted) return;
         setAttemptsLeft(Math.max(0, 2 - quizAttempts));
+
+        if (passed) {
+          setIsPassed(true);
+          setShowGuideModal(false);
+          setShowFailedModal(false);
+          setQuizStarted(false);
+          setShowSuccessModal(true);
+          return;
+        }
 
         if (quizAttempts >= 2 && passed === false) {
           setShowFailedModal(true);
@@ -164,25 +205,36 @@ export default function Quiz() {
       return copy;
     });
   };
-
   const handleSubmit = async () => {
     setError('');
     setMessage('');
+
+    // validate answers
     if (!Array.isArray(answers) || answers.length !== quiz.length) {
       setError('لطفاً به تمام سؤال‌ها پاسخ دهید.');
       return;
     }
+
     try {
       const res = await api.post('/quiz/submit', { userId, answers });
+
       setScore(res.data.score);
       setAttemptsLeft(res.data.attemptsLeft);
       setMessage(res.data.message);
       setQuizStarted(false);
 
+      // ✅ Case 1: Passed
+      if (res.data.passed) {
+        setShowSuccessModal(true); // you’ll create this modal in your UI
+        return;
+      }
+
+      // ✅ Case 2: Failed + reached 2 attempts → start 2-week ban
       if (!res.data.passed && res.data.attemptsLeft === 0) {
         // fetch progress to get twoWeekBanDate
         const pr = await api.get(`/quiz/progress/${userId}`);
         const twoWeekBanDate = pr.data.twoWeekBanDate;
+
         if (twoWeekBanDate) {
           const now = new Date();
           const banEnd = new Date(twoWeekBanDate);
@@ -194,15 +246,15 @@ export default function Quiz() {
           setCanRetry(remainingSeconds <= 0);
           setShowFailedModal(true);
         } else {
-          // fallback: show modal and ask server to set ban (should be set by submit)
+          // fallback if backend didn’t return date
           setShowFailedModal(true);
           setBanTimeLeft(14 * 24 * 3600);
           setCanRetry(false);
         }
       }
     } catch (err) {
+      // ✅ Case 3: user is currently banned
       if (err.response?.data?.remainingSeconds) {
-        // server said user is currently banned and returned remainingSeconds
         setBanTimeLeft(err.response.data.remainingSeconds);
         setCanRetry(false);
         setShowFailedModal(true);
@@ -256,123 +308,49 @@ export default function Quiz() {
     return `${h}س ${m}د ${s}ث`;
   };
 
+  // SUCCESS MODAL
+  if (showSuccessModal) {
+    return <SuccessModal />;
+  }
+
   // FAILED MODAL
   if (showFailedModal) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-6 max-w-lg text-center">
-          <h2 className="text-2xl font-semibold mb-4">
-            شما ۲ بار تلاش کردید و موفق نشدید
-          </h2>
-          {banTimeLeft > 0 ? (
-            <p className="mb-4 text-red-600">
-              زمان باقی‌مانده تا امکان امتحان مجدد:{' '}
-              {formatCountdown(banTimeLeft)}
-            </p>
-          ) : (
-            <p className="mb-4 text-green-600">
-              مدت محرومیت شما تمام شده است، می‌توانید دوباره امتحان دهید.
-            </p>
-          )}
-
-          <button
-            onClick={handleRetry}
-            disabled={!canRetry}
-            className={`py-2 px-6 rounded-xl transition mr-2 ${
-              canRetry
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-400 text-gray-700 cursor-not-allowed'
-            }`}>
-            {canRetry
-              ? 'امتحان مجدد'
-              : `صبر کنید… (${formatCountdown(banTimeLeft)})`}
-          </button>
-
-          <button
-            onClick={() => window.history.back()}
-            className="bg-gray-300 text-gray-700 py-2 px-6 rounded-xl hover:bg-gray-400 transition">
-            بازگشت
-          </button>
-        </div>
-      </div>
+      <FailedModal
+        banTimeLeft={banTimeLeft}
+        formatCountdown={formatCountdown}
+        handleRetry={handleRetry}
+        canRetry={canRetry}
+      />
     );
   }
 
   // GUIDE MODAL
   if (showGuideModal) {
-    return (
-      <div
-        dir="rtl"
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-6 max-w-lg text-center">
-          <h2 className="text-2xl font-semibold mb-4">راهنمای آزمون</h2>
-          <p className="mb-4 text-right">
-            لطفاً قبل از شروع، تمام جلسات ضبط شده را با دقت مشاهده کنید. شما ۳۰
-            دقیقه زمان دارید و می‌توانید حداکثر دو بار امتحان دهید.
-          </p>
-          <button
-            onClick={handleStart}
-            className="bg-blue-600 text-white py-2 px-6 rounded-xl hover:bg-blue-700 transition">
-            شروع آزمون
-          </button>
-        </div>
-      </div>
-    );
+    return <GuideModal handleStart={handleStart} />;
   }
 
   // MAIN UI
   return (
     <div
       dir="rtl"
-      className="max-w-xl mx-auto bg-white rounded-2xl shadow p-6 mt-10">
-      <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
-        آزمون آکادمی تغذیه
-      </h2>
-
-      {quizStarted && (
-        <div className="text-center text-gray-700 mb-4">
-          زمان باقی‌مانده: {formatTime(timeLeft)}
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-100 text-red-600 p-2 rounded-md mb-3 text-sm">
-          {error}
-        </div>
-      )}
-      {message && (
-        <div className="bg-green-100 text-green-600 p-2 rounded-md mb-3 text-sm">
-          {message}
-        </div>
-      )}
+      className="max-w-xl mx-auto bg-white rounded-2xl shadow p-6 mt-20">
+      <Header
+        quizStarted={quizStarted}
+        formatTime={formatTime}
+        timeLeft={timeLeft}
+        error={error}
+        setError={setError}
+        message={message}
+      />
 
       {quiz.map((q, index) => (
-        <div key={index} className="mb-6">
-          <p className="font-medium text-gray-800 mb-2">
-            {index + 1}. {q.question}
-          </p>
-          <div className="space-y-2">
-            {q.options.map((opt, i) => (
-              <label
-                key={i}
-                className={`flex items-center space-x-2 border rounded-lg p-2 gap-2 cursor-pointer transition ${
-                  answers[index] === i
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}>
-                <input
-                  type="radio"
-                  name={`question-${index}`}
-                  value={i}
-                  checked={answers[index] === i}
-                  onChange={() => handleAnswerChange(index, i)}
-                  className="accent-blue-500 "
-                />
-                <span>{opt}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        <QuizSection
+          index={index}
+          q={q}
+          handleAnswerChange={handleAnswerChange}
+          answers={answers}
+        />
       ))}
 
       <button
@@ -391,6 +369,7 @@ export default function Quiz() {
           امتیاز شما: {score}
         </div>
       )}
+      <BottomTabNavigation />
     </div>
   );
 }

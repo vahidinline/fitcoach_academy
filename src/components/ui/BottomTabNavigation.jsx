@@ -55,13 +55,13 @@ const BottomTabNavigation = () => {
       badge: null,
       status: 'deActivated',
     },
-    // {
-    //   id: 'telegram',
-    //   label: 'عضویت در تلگرام',
-    //   path: 'https://t.me/+6oHMFATMqqFkMGI0',
-    //   icon: 'Users',
-    //   badge: null,
-    // },
+    {
+      id: 'quiz',
+      label: ' آزمون ',
+      path: '/quiz',
+      icon: 'NotebookPen',
+      badge: null,
+    },
   ];
 
   const handleLogout = () => {
