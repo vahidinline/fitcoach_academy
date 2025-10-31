@@ -1,357 +1,339 @@
+import { useEffect, useState, useRef } from 'react';
 import api from 'api/api';
-import { useEffect, useState } from 'react';
 
-export default function Quiz({}) {
+export default function Quiz() {
+  const [quiz, setQuiz] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [attemptsLeft, setAttemptsLeft] = useState(2);
-  const [loading, setLoading] = useState(true);
+  const [score, setScore] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [score, setScore] = useState(null);
+  const [showGuideModal, setShowGuideModal] = useState(true);
+  const [showFailedModal, setShowFailedModal] = useState(false);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(1800); // 30 min
+  const [banTimeLeft, setBanTimeLeft] = useState(0); // seconds
+  const [canRetry, setCanRetry] = useState(false);
+
   const userId = '22323';
+  const banTimerRef = useRef(null);
+  const quizTimerRef = useRef(null);
 
-  const quiz = [
-    // جلسه 1
-    {
-      question: 'کدام یک از موارد زیر در کالری خروجی وجود ندارد؟ ',
-      options: ['BMR', 'کالری نقصان ', 'Neat'],
-      correctAnswer: 1,
-      videoId: '1',
-      videoTitle: 'جلسه اول آکادمی ',
-    },
-    {
-      question: 'میانگین قدم های یک فرد بالغ چقدر هست؟ \n',
-      options: ['1000', '2000', '4000-5000', '8000-10000'],
-      correctAnswer: 3,
-      videoId: '1',
-      videoTitle: 'جلسه اول آکادمی ',
-    },
-    {
-      question: 'برای کاهش وزن باید در ….. باشیم \n',
-      options: ['کالری تثبیت\n', 'کالری مازاد\n', 'کالری نقصان\n'],
-      correctAnswer: 2,
-      videoId: '1',
-      videoTitle: 'جلسه اول آکادمی ',
-    },
-    {
-      question:
-        'بعد از متابولیسم پایه کدام مورد بیشترین سهم  در کالری خروجی را دارد ؟ \n',
-      options: ['اثر گرمایی غذاها TEF\n', 'ورزش کردن\n', 'پیاده روی کردن'],
-      correctAnswer: 2,
-      videoId: '1',
-      videoTitle: 'جلسه اول آکادمی ',
-    },
+  // fetch on mount
+  useEffect(() => {
+    let mounted = true;
+    const fetchData = async () => {
+      try {
+        const [quizRes, progressRes] = await Promise.allSettled([
+          api.get('/quiz'),
+          api.get(`/quiz/progress/${userId}`),
+        ]);
 
-    // جلسه 2
-    {
-      question: 'میزان دریافت پروتیین هر شخص بر چه اساسی مشخص می‌شود؟',
-      options: ['قد شخص', 'وزن SMM شخص', 'BMI فرد', 'سن شخص'],
-      correctAnswer: 1,
-      videoId: '2',
-      videoTitle: 'جلسه دوم',
-    },
-    {
-      question: 'میزان استاندارد پروتئین روزانه چقدر است؟',
-      options: [
-        '۱/۶ تا ۲/۲ گرم به ازای هر کیلو وزن بدن',
-        'دو برابر وزن',
-        'یک برابر وزن',
-        '۵ گرم به ازای هر کیلو وزن بدن',
-      ],
-      correctAnswer: 0,
-      videoId: '2',
-      videoTitle: 'جلسه دوم',
-    },
-    {
-      question: 'کدام نوع پروتیین ارجح تر است؟',
-      options: [
-        'پروتئین گیاهی',
-        'پروتئین حیوانی',
-        'هیچ فرقی ندارد',
-        'پودر پروتئین',
-      ],
-      correctAnswer: 1,
-      videoId: '2',
-      videoTitle: 'جلسه دوم',
-    },
-    {
-      question: 'دلیل تنوع دادن به منابع غذایی چیست؟',
-      options: [
-        'افزایش میروبایوم های مفید روده',
-        'جلوگیری از دلزدگی و خستگی در رژیم',
-        'دریافت ویتامین ها و مینرال ها از منابع مختلف',
-        'همه ی موارد بالا',
-      ],
-      correctAnswer: 3,
-      videoId: '2',
-      videoTitle: 'جلسه دوم',
-    },
+        // quiz
+        if (quizRes.status === 'fulfilled') {
+          if (!mounted) return;
+          setQuiz(quizRes.value.data);
+        } else {
+          if (!mounted) return;
+          setError('مشکل در بارگذاری سوالات آزمون.');
+          return;
+        }
 
-    // جلسه 3
-    {
-      question: 'کدام یک از مواد غذایی زیر منبع غنی فیبر است؟',
-      options: ['نان لواش', 'برنج سفید', 'حبوبات', 'ماکارونی'],
-      correctAnswer: 2,
-      videoId: '3',
-      videoTitle: 'جلسه سوم',
-    },
-    {
-      question: 'چرا مصرف بیش از حد فیبر ممکن است مضر باشد؟',
-      options: [
-        'کاهش وزن شدید',
-        'کمبود ویتامین‌ها و مواد معدنی',
-        'افزایش قند خون',
-        'احساس خستگی زیاد',
-      ],
-      correctAnswer: 1,
-      videoId: '3',
-      videoTitle: 'جلسه سوم',
-    },
-    {
-      question:
-        'مصرف فیبر کافی می‌تواند به کاهش خطر کدام یک از بیماری‌های زیر کمک کند؟',
-      options: ['کلسترول و قند خون', 'مشکلات قلبی', 'نقرس', 'فشار خون بالا'],
-      correctAnswer: 0,
-      videoId: '3',
-      videoTitle: 'جلسه سوم',
-    },
-    {
-      question: 'چه مقدار فیبر در روز برای یک بزرگسال توصیه می‌شود؟',
-      options: ['10 تا 15 گرم', '20 تا 35 گرم', '40 تا 55 گرم', '5 تا 10 گرم'],
-      correctAnswer: 1,
-      videoId: '3',
-      videoTitle: 'جلسه سوم',
-    },
+        // progress
+        if (progressRes.status === 'rejected' || !progressRes.value?.data) {
+          // no progress -> fresh user
+          if (!mounted) return;
+          setAttemptsLeft(2);
+          setShowGuideModal(true);
+          setShowFailedModal(false);
+          setCanRetry(true);
+          setBanTimeLeft(0);
+          return;
+        }
 
-    // جلسه 4
-    {
-      question:
-        'کدام گزینه بیانگر نقش اصلی کربوهیدرات‌های پیچیده در رژیم غذایی انسان است؟',
-      options: [
-        'تامین انرژی سریع',
-        'تنظیم قند خون',
-        'افزایش چربی بدن',
-        'کاهش وزن',
-      ],
-      correctAnswer: 1,
-      videoId: '4',
-      videoTitle: 'جلسه چهارم',
-    },
-    {
-      question:
-        'کدام یک از موارد زیر بیشترین تاثیر را در کاهش قند در رژیم غذایی دارد؟',
-      options: [
-        'حذف تمام مواد قندی',
-        'مصرف بیشتر فیبر',
-        'کاهش مصرف پروتئین',
-        'افزایش مصرف آب',
-      ],
-      correctAnswer: 1,
-      videoId: '4',
-      videoTitle: 'جلسه چهارم',
-    },
-    {
-      question:
-        'میزان مصرف روزانه‌ی قند (قند پنهان + free sugare) برای یک فرد بالغ سالم چقدر توصیه شده است؟',
-      options: ['کمتر از 45 گرم', '50 گرم', '75 گرم', '100 گرم'],
-      correctAnswer: 0,
-      videoId: '4',
-      videoTitle: 'جلسه چهارم',
-    },
-    {
-      question:
-        'کدام یک از موارد زیر یک منبع کربوهیدرات پیچیده است که همچنین پروتئین بالایی دارد؟',
-      options: ['عسل', 'سیب', 'کینوا', 'نان سبوس‌دار'],
-      correctAnswer: 2,
-      videoId: '4',
-      videoTitle: 'جلسه چهارم',
-    },
+        const {
+          quizAttempts = 0,
+          passed = false,
+          twoWeekBanDate = null,
+        } = progressRes.value.data || {};
 
-    // جلسه 5
-    {
-      question:
-        'کدام یک از گزینه‌های زیر بیشترین تاثیر را بر کیفیت خواب شبانه دارد؟',
-      options: [
-        'مصرف کافئین قبل از خواب',
-        'داشتن یک برنامه منظم خواب',
-        'استفاده از گوشی موبایل در تختخواب',
-        'خوردن وعده غذایی سنگین پیش از خواب',
-      ],
-      correctAnswer: 1,
-      videoId: '5',
-      videoTitle: 'جلسه پنجم',
-    },
-    {
-      question: 'کدام یک از موارد زیر می‌تواند به افزایش کمیت خواب کمک کند؟',
-      options: [
-        'نوشیدن قهوه در عصر',
-        'تنظیم درجه حرارت اتاق خواب',
-        'مطالعه کتاب‌های هیجان‌انگیز قبل از خواب',
-        'خوابیدن در طول روز به مدت طولانی',
-      ],
-      correctAnswer: 1,
-      videoId: '5',
-      videoTitle: 'جلسه پنجم',
-    },
-    {
-      question: 'چه مقدار آب باید یک فرد بالغ در روز بنوشد؟',
-      options: [
-        '2 تا 3 لیتر',
-        '1 تا 2 لیتر',
-        '3 تا 4 لیتر',
-        'بستگی به وزن فرد دارد',
-      ],
-      correctAnswer: 0,
-      videoId: '5',
-      videoTitle: 'جلسه پنجم',
-    },
-    {
-      question: 'کمبود آب در بدن چه عارضه‌ای می‌تواند ایجاد کند؟',
-      options: ['خستگی', 'سردرد', 'خشکی پوست', 'همه موارد'],
-      correctAnswer: 3,
-      videoId: '5',
-      videoTitle: 'جلسه پنجم',
-    },
+        if (!mounted) return;
+        setAttemptsLeft(Math.max(0, 2 - quizAttempts));
 
-    // جلسه 6
-    {
-      question:
-        'کدامیک از موارد زیر یک منبع عالی برای بهره‌مندی از چربی‌های چند غیر اشباع است؟',
-      options: ['روغن آفتابگردان', 'دانه چیا', 'کره گیاهی', 'روغن نارگیل'],
-      correctAnswer: 1,
-      videoId: '6',
-      videoTitle: 'جلسه ششم',
-    },
-    {
-      question:
-        'کدامیک از اثرات زیر از فوائد مصرف چربی‌های سالم بر روی هورمون‌ها محسوب می‌شود؟',
-      options: [
-        'افزایش تولید هورمون کورتیزول',
-        'بهبود تعادل هورمون‌های جنسی',
-        'کاهش سطح هورمون انسولین',
-        'افزایش هورمون‌های تیروئیدی',
-      ],
-      correctAnswer: 1,
-      videoId: '6',
-      videoTitle: 'جلسه ششم',
-    },
-    {
-      question: 'کدام یک از گزینه‌های زیر منبع خوبی از چربی‌های سالم است؟',
-      options: ['کره حیوانی', 'روغن زیتون', 'مارگارین', 'روغن نباتی'],
-      correctAnswer: 1,
-      videoId: '6',
-      videoTitle: 'جلسه ششم',
-    },
-    {
-      question: 'یک گرم چربی چند کالری دارد؟',
-      options: ['۲ کالری', '۴ کالری', '۹ کالری', '۱۱ کالری'],
-      correctAnswer: 2,
-      videoId: '6',
-      videoTitle: 'جلسه ششم',
-    },
+        if (quizAttempts >= 2 && passed === false) {
+          setShowFailedModal(true);
+          setShowGuideModal(false);
+          setQuizStarted(false);
 
-    // جلسه 7
-    {
-      question:
-        'کدام ترکیب از مواد غذایی در یک بشقاب غذایی کامل و سالم بهتر است؟',
-      options: [
-        'مرغ کبابی، برنج قهوه‌ای، بروکلی بخارپز',
-        'استیک گاو، سیب‌زمینی سرخ‌شده، هویج رنده‌شده',
-        'ماهی سرخ‌شده، نان سفید، ذرت مکزیکی',
-        'تخم‌مرغ آب‌پز، نان تست، خیار شور',
-      ],
-      correctAnswer: 0,
-      videoId: '7',
-      videoTitle: 'جلسه هفتم',
-    },
-    {
-      question:
-        'برای تعیین مقدار مناسب چربی در رژیم غذایی، از کدام بخش دست می‌توان استفاده کرد؟',
-      options: ['نوک انگشت سبابه', 'کف دست', 'انگشت شست', 'پشت دست'],
-      correctAnswer: 2,
-      videoId: '7',
-      videoTitle: 'جلسه هفتم',
-    },
-    {
-      question: '"Rainbow eating یا رنگین‌کمانی خوردن" به چه معناست؟',
-      options: [
-        'مصرف فقط سبزیجات سبز',
-        'خوردن غذاهای متنوع از تمام گروه‌های غذایی',
-        'مصرف سبزیجات در رنگ‌های مختلف',
-        'خوردن غذاهای شیرین',
-      ],
-      correctAnswer: 2,
-      videoId: '7',
-      videoTitle: 'جلسه هفتم',
-    },
-    {
-      question:
-        'کدام یک از گزینه‌های زیر مزیت استفاده از روش Hand-sized Portion در چیدن بشقاب غذایی است؟',
-      options: [
-        'ایجاد وعده‌های غذایی کم‌کالری',
-        'اندازه‌گیری ساده و بدون نیاز به ترازو',
-        'مصرف پروتئین',
-        'خوردن غذای کمتر',
-      ],
-      correctAnswer: 1,
-      videoId: '7',
-      videoTitle: 'جلسه هفتم',
-    },
-  ];
+          if (twoWeekBanDate) {
+            const now = new Date();
+            const banEnd = new Date(twoWeekBanDate);
+            const remainingSeconds = Math.max(
+              0,
+              Math.floor((banEnd - now) / 1000)
+            );
+            setBanTimeLeft(remainingSeconds);
+            setCanRetry(remainingSeconds <= 0);
+          } else {
+            // safety fallback
+            setBanTimeLeft(14 * 24 * 3600);
+            setCanRetry(false);
+          }
+        } else {
+          setShowGuideModal(true);
+        }
+      } catch (err) {
+        console.error(err);
+        if (mounted) setError('خطا در بارگذاری اولیه.');
+      }
+    };
 
-  const submitQuiz = async (userId, answers) => {
-    const res = await api.post(`/quiz/submit`, {
-      userId,
-      answers,
-    });
-    console.log(res);
+    fetchData();
 
-    if (!res.ok) throw new Error(data.message || 'Failed to submit quiz');
-    return data;
+    return () => {
+      mounted = false;
+      clearInterval(banTimerRef.current);
+      clearInterval(quizTimerRef.current);
+    };
+  }, [userId]);
+
+  // quiz timer (30min)
+  useEffect(() => {
+    if (!quizStarted) return;
+    if (timeLeft <= 0) {
+      alert('زمان آزمون به پایان رسید!');
+      window.history.back();
+      return;
+    }
+    quizTimerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(quizTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(quizTimerRef.current);
+  }, [quizStarted, timeLeft]);
+
+  // ban countdown timer
+  useEffect(() => {
+    clearInterval(banTimerRef.current);
+    if (banTimeLeft <= 0) {
+      setCanRetry(true);
+      setBanTimeLeft(0);
+      return;
+    }
+    setCanRetry(false);
+    banTimerRef.current = setInterval(() => {
+      setBanTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(banTimerRef.current);
+          setCanRetry(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(banTimerRef.current);
+  }, [banTimeLeft]);
+
+  // beforeunload warning
+  useEffect(() => {
+    const handler = (e) => {
+      if (quizStarted && score === null) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [quizStarted, score]);
+
+  const handleStart = () => {
+    setShowGuideModal(false);
+    setQuizStarted(true);
+    setTimeLeft(1800);
   };
 
   const handleAnswerChange = (qIndex, optionIndex) => {
-    const updated = [...answers];
-    updated[qIndex] = optionIndex;
-    setAnswers(updated);
+    setAnswers((prev) => {
+      const copy = [...prev];
+      copy[qIndex] = optionIndex;
+      return copy;
+    });
   };
 
   const handleSubmit = async () => {
     setError('');
     setMessage('');
+    if (!Array.isArray(answers) || answers.length !== quiz.length) {
+      setError('لطفاً به تمام سؤال‌ها پاسخ دهید.');
+      return;
+    }
     try {
-      if (answers.length !== quiz.length) {
-        setError('لطفاً به تمام سؤال‌ها پاسخ دهید.');
-        return;
+      const res = await api.post('/quiz/submit', { userId, answers });
+      setScore(res.data.score);
+      setAttemptsLeft(res.data.attemptsLeft);
+      setMessage(res.data.message);
+      setQuizStarted(false);
+
+      if (!res.data.passed && res.data.attemptsLeft === 0) {
+        // fetch progress to get twoWeekBanDate
+        const pr = await api.get(`/quiz/progress/${userId}`);
+        const twoWeekBanDate = pr.data.twoWeekBanDate;
+        if (twoWeekBanDate) {
+          const now = new Date();
+          const banEnd = new Date(twoWeekBanDate);
+          const remainingSeconds = Math.max(
+            0,
+            Math.floor((banEnd - now) / 1000)
+          );
+          setBanTimeLeft(remainingSeconds);
+          setCanRetry(remainingSeconds <= 0);
+          setShowFailedModal(true);
+        } else {
+          // fallback: show modal and ask server to set ban (should be set by submit)
+          setShowFailedModal(true);
+          setBanTimeLeft(14 * 24 * 3600);
+          setCanRetry(false);
+        }
       }
-      const data = await submitQuiz(userId, answers);
-      setScore(data.score);
-      setAttemptsLeft(data.attemptsLeft);
-      setMessage(data.message);
     } catch (err) {
-      setError(err.message);
+      if (err.response?.data?.remainingSeconds) {
+        // server said user is currently banned and returned remainingSeconds
+        setBanTimeLeft(err.response.data.remainingSeconds);
+        setCanRetry(false);
+        setShowFailedModal(true);
+      } else {
+        setError(err.message || 'خطا در ارسال آزمون.');
+      }
     }
   };
 
-  //   if (loading) {
-  //     return (
-  //       <div className="text-center text-gray-600 py-10">در حال بارگذاری...</div>
-  //     );
-  //   }
+  // handleRetry uses server definitive answer
+  const handleRetry = async () => {
+    try {
+      const { data } = await api.post('/quiz/retry', { userId });
+      if (data.canRetry) {
+        const q = await api.get('/quiz');
+        setQuiz(q.data);
+        setShowFailedModal(false);
+        setAttemptsLeft(2);
+        setQuizStarted(false);
+        setAnswers([]);
+        setScore(null);
+        setMessage('');
+        setBanTimeLeft(0);
+        setCanRetry(true);
+      } else {
+        // server returned remainingSeconds — update it
+        if (typeof data.remainingSeconds === 'number') {
+          setBanTimeLeft(data.remainingSeconds);
+          setCanRetry(false);
+        }
+        alert('هنوز دو هفته از آخرین تلاش شما نگذشته است.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('خطا در بررسی امکان امتحان مجدد.');
+    }
+  };
 
-  if (attemptsLeft === 0) {
+  const formatTime = (seconds) => {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const formatCountdown = (seconds) => {
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (d > 0) return `${d} روز ${h} ساعت ${m} دقیقه ${s} ثانیه`;
+    return `${h}س ${m}د ${s}ث`;
+  };
+
+  // FAILED MODAL
+  if (showFailedModal) {
     return (
-      <div className="text-center text-red-600 py-10">
-        شما حداکثر ۲ تلاش داشتید. امکان شرکت مجدد وجود ندارد.
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-lg text-center">
+          <h2 className="text-2xl font-semibold mb-4">
+            شما ۲ بار تلاش کردید و موفق نشدید
+          </h2>
+          {banTimeLeft > 0 ? (
+            <p className="mb-4 text-red-600">
+              زمان باقی‌مانده تا امکان امتحان مجدد:{' '}
+              {formatCountdown(banTimeLeft)}
+            </p>
+          ) : (
+            <p className="mb-4 text-green-600">
+              مدت محرومیت شما تمام شده است، می‌توانید دوباره امتحان دهید.
+            </p>
+          )}
+
+          <button
+            onClick={handleRetry}
+            disabled={!canRetry}
+            className={`py-2 px-6 rounded-xl transition mr-2 ${
+              canRetry
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-400 text-gray-700 cursor-not-allowed'
+            }`}>
+            {canRetry
+              ? 'امتحان مجدد'
+              : `صبر کنید… (${formatCountdown(banTimeLeft)})`}
+          </button>
+
+          <button
+            onClick={() => window.history.back()}
+            className="bg-gray-300 text-gray-700 py-2 px-6 rounded-xl hover:bg-gray-400 transition">
+            بازگشت
+          </button>
+        </div>
       </div>
     );
   }
 
+  // GUIDE MODAL
+  if (showGuideModal) {
+    return (
+      <div
+        dir="rtl"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-lg text-center">
+          <h2 className="text-2xl font-semibold mb-4">راهنمای آزمون</h2>
+          <p className="mb-4 text-right">
+            لطفاً قبل از شروع، تمام جلسات ضبط شده را با دقت مشاهده کنید. شما ۳۰
+            دقیقه زمان دارید و می‌توانید حداکثر دو بار امتحان دهید.
+          </p>
+          <button
+            onClick={handleStart}
+            className="bg-blue-600 text-white py-2 px-6 rounded-xl hover:bg-blue-700 transition">
+            شروع آزمون
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // MAIN UI
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-2xl shadow p-6 mt-10">
+    <div
+      dir="rtl"
+      className="max-w-xl mx-auto bg-white rounded-2xl shadow p-6 mt-10">
       <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">
-        آزمون جلسه
+        آزمون آکادمی تغذیه
       </h2>
+
+      {quizStarted && (
+        <div className="text-center text-gray-700 mb-4">
+          زمان باقی‌مانده: {formatTime(timeLeft)}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-100 text-red-600 p-2 rounded-md mb-3 text-sm">
@@ -373,7 +355,7 @@ export default function Quiz({}) {
             {q.options.map((opt, i) => (
               <label
                 key={i}
-                className={`flex items-center space-x-2 border rounded-lg p-2 cursor-pointer transition ${
+                className={`flex items-center space-x-2 border rounded-lg p-2 gap-2 cursor-pointer transition ${
                   answers[index] === i
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:bg-gray-50'
@@ -384,7 +366,7 @@ export default function Quiz({}) {
                   value={i}
                   checked={answers[index] === i}
                   onChange={() => handleAnswerChange(index, i)}
-                  className="accent-blue-500"
+                  className="accent-blue-500 "
                 />
                 <span>{opt}</span>
               </label>
