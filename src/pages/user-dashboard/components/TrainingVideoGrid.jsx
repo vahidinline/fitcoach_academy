@@ -33,7 +33,7 @@ const TrainingVideoGrid = ({ videos }) => {
     <div className="bg-card rounded-lg p-6 border border-border shadow-elevation-1">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-card-foreground">
-          ویدئوهای آموزشی کوتاه
+          ویدئوهای آموزشی رایگان
         </h3>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Icon name="Play" size={16} />

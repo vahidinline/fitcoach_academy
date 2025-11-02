@@ -305,11 +305,11 @@ const UserDashboard = () => {
 
           {/* Stats Cards */}
           <StatsCards stats={dashboardData.stats} />
-          <TrainingVideoGrid videos={trainingVideos} />
+          {/* <TrainingVideoGrid videos={trainingVideos} /> */}
 
           {/* Main Content Grid */}
-          {/*  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         <div className="lg:col-span-2 space-y-6">
+          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
               <ProgressSection
                 progressReports={dashboardData.progressReports}
               />

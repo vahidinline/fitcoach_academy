@@ -9,16 +9,16 @@ import CommentsSection from './components/CommentsSection';
 import ProgressTracker from './components/ProgressTracker';
 
 import CommentForm from './components/CommentForm';
-import Thumb01 from '../../assets/img/video01.png';
-import Thumb02 from '../../assets/img/video02.png';
-import Thumb03 from '../../assets/img/video03.png';
-import Thumb04 from '../../assets/img/video04.png';
-import Thumb05 from '../../assets/img/video05.png';
-import Thumb06 from '../../assets/img/video06.png';
-import Thumb07 from '../../assets/img/video07.png';
-import Thumb08 from '../../assets/img/video08.png';
-import Thumb09 from '../../assets/img/video09.png';
-import Thumb10 from '../../assets/img/video10.png';
+import Thumb01 from '../../assets/img/video01.jpg';
+import Thumb02 from '../../assets/img/video02.jpg';
+import Thumb03 from '../../assets/img/video03.jpg';
+import Thumb04 from '../../assets/img/video04.jpg';
+import Thumb05 from '../../assets/img/video05.jpg';
+import Thumb06 from '../../assets/img/video06.jpg';
+import Thumb07 from '../../assets/img/video07.jpg';
+import Thumb08 from '../../assets/img/video08.jpg';
+import Thumb09 from '../../assets/img/video09.jpg';
+import Thumb10 from '../../assets/img/video10.jpg';
 const TrainingVideoPlayer = () => {
   const { videoId } = useParams();
   const navigate = useNavigate();
@@ -48,11 +48,9 @@ const TrainingVideoPlayer = () => {
         {
           url: 'https://backend.fitlinez.com/uploads/session05.jpg',
         },
+
         {
-          url: 'https://storage.googleapis.com/backend.fitlinez.com/all/18F8D57F-065F-4951-9C1C-F1E35F5EB24E-export.jpg',
-        },
-        {
-          url: 'https://storage.googleapis.com/backend.fitlinez.com/all/weight%20gain.webp',
+          url: 'https://backend.fitlinez.com/all/weight%20gain.webp',
         },
       ],
       additionalLinks: [

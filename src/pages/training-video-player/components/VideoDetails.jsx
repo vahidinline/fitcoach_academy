@@ -264,7 +264,7 @@ const VideoDetails = ({
         )}
 
         {/* Workout Tips */}
-        <div className="p-6">
+        {/* <div className="p-6">
           <button
             onClick={() => toggleSection('tips')}
             className="flex items-center justify-between w-full text-left">
@@ -294,7 +294,7 @@ const VideoDetails = ({
               </div>
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

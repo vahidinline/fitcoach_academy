@@ -14,8 +14,7 @@ export const translations = {
   // Dashboard
   dashboard: {
     welcomeBack: 'خوش آمدید، {name}!',
-    readyToContinue:
-      'آماده ادامه سفر تناسب اندام هستید؟ بیایید امروز را به یادماندنی کنیم.',
+    readyToContinue: ' ',
     loadingDashboard: 'در حال بارگذاری داشبورد...',
     failedToLoad: 'بارگذاری اطلاعات داشبورد ناموفق بود',
     tryAgain: 'تلاش مجدد',
