@@ -7,7 +7,8 @@ const VideoPlayer = ({
   onProgress,
   initialProgress = 0,
   onComplete,
-  attachments,
+
+  thumbnail,
   className = '',
 }) => {
   const videoRef = useRef(null);
@@ -113,6 +114,7 @@ const VideoPlayer = ({
       className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
       {/* Video Element */}
       <video
+        poster={thumbnail}
         ref={videoRef}
         src={videoSrc}
         className="w-full h-full object-cover"

@@ -12,6 +12,7 @@ const VideoDetails = ({
   rating,
   totalRatings,
   isBookmarked,
+
   onBookmark,
   onRate,
   userRating,
@@ -20,7 +21,9 @@ const VideoDetails = ({
 }) => {
   const [expandedSection, setExpandedSection] = useState(null);
   const [showRating, setShowRating] = useState(false);
-  console.log(attachments);
+  const safeAttachments = Array.isArray(attachments) ? attachments : [];
+
+  console.log('safeAttachments', safeAttachments);
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
@@ -171,7 +174,10 @@ const VideoDetails = ({
           <button
             onClick={() => toggleSection('attachments')}
             className="flex items-center justify-between w-full text-left">
-            <h3 className="font-medium text-card-foreground">پیوست ها</h3>
+            <h3 className="font-medium text-card-foreground flex items-center gap-2">
+              <Icon name="Paperclip" size={18} />
+              پیوست‌ها
+            </h3>
             <Icon
               name="ChevronDown"
               size={20}
@@ -181,11 +187,44 @@ const VideoDetails = ({
             />
           </button>
 
-          {expandedSection === 'description' && (
+          {expandedSection === 'attachments' && (
             <div className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              {attachments?.map((i, item) => {
-                return <div key={i}>sdfsd</div>;
-              })}
+              {attachments && attachments.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {attachments.map((item, i) => (
+                    <div
+                      key={i}
+                      className="relative group w-32 h-32 bg-muted rounded-lg overflow-hidden">
+                      {item.url?.match(/\.(jpeg|jpg|png|webp)$/i) ? (
+                        <img
+                          src={item.url}
+                          alt={`attachment-${i}`}
+                          className="w-full h-full object-cover group-hover:opacity-80 transition"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <Icon name="FileText" size={40} />
+                        </div>
+                      )}
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Icon
+                          name="ExternalLink"
+                          size={20}
+                          className="text-white"
+                        />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground/70 text-sm mt-2">
+                  هیچ پیوستی موجود نیست.
+                </p>
+              )}
             </div>
           )}
         </div>
