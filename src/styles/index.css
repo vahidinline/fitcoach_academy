@@ -10,3 +10,9 @@ body {
   font-family: 'Vazirmatn';
   margin: unset;
 }
+
+.input-box {
+  @apply w-full p-3 rounded-lg border border-gray-300
+         bg-white/60 backdrop-blur-md
+         focus:ring-2 focus:ring-blue-500 outline-none;
+}

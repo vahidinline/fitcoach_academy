@@ -1,26 +1,38 @@
-import React, { useState, useRef } from 'react';
-import Icon from '../../../components/AppIcon';
-import Image from '../../../components/AppImage';
-import Button from '../../../components/ui/Button';
+import React, { useState, useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import api from 'api/api';
+import PhotoGallerySection from './PhotoGallerySection'; // اگر هنوز اینو نداری فعلاً کامنت کن
 
-const PhotoUploadSection = ({ 
-  title, 
-  description, 
-  photos, 
-  onPhotosChange, 
-  maxPhotos = 2,
-  acceptedTypes = "image/*"
-}) => {
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
+const PhotoUploadSection = ({ maxPhotos = 3 }) => {
+  const containerRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
+
+  const [photos, setPhotos] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [dragActive, setDragActive] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // GSAP animation on mount
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.from(containerRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        ease: 'power3.out',
+      });
+    }
+  }, []);
+
+  // ---------- Drag handlers ----------
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave' || e.type === 'drop') {
       setDragActive(false);
     }
   };
@@ -29,260 +41,231 @@ const PhotoUploadSection = ({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length) {
+      handleFiles(files);
+    }
   };
 
+  // ---------- File input ----------
   const handleFileInput = (e) => {
-    const files = Array.from(e.target.files);
-    handleFiles(files);
+    const files = Array.from(e.target.files || []);
+    if (files.length) {
+      handleFiles(files);
+    }
   };
 
+  // ---------- Validate & dispatch uploads ----------
   const handleFiles = (files) => {
-    const validFiles = files.filter(file => 
-      file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024 // 10MB limit
+    const valid = files.filter(
+      (f) => f.type.startsWith('image/') && f.size <= 10 * 1024 * 1024
     );
 
-    if (photos.length + validFiles.length > maxPhotos) {
-      alert(`Maximum ${maxPhotos} photos allowed`);
+    if (!valid.length) {
+      alert('فایل معتبر پیدا نشد.');
       return;
     }
 
-    validFiles.forEach((file, index) => {
-      const fileId = Date.now() + index;
-      
-      // Simulate upload progress
-      setUploadProgress(prev => ({ ...prev, [fileId]: 0 }));
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newPhoto = {
-          id: fileId,
-          file: file,
-          preview: e.target.result,
-          name: file.name,
-          size: file.size,
-          status: 'uploading'
-        };
+    if (photos.length + valid.length > maxPhotos) {
+      alert(`حداکثر ${maxPhotos} تصویر می‌توانید آپلود کنید.`);
+      return;
+    }
 
-        onPhotosChange([...photos, newPhoto]);
-
-        // Simulate upload progress
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 30;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setUploadProgress(prev => {
-              const updated = { ...prev };
-              delete updated[fileId];
-              return updated;
-            });
-            
-            // Update photo status to completed
-            onPhotosChange(prevPhotos => 
-              prevPhotos.map(photo => 
-                photo.id === fileId 
-                  ? { ...photo, status: 'completed' }
-                  : photo
-              )
-            );
-          }
-          setUploadProgress(prev => ({ ...prev, [fileId]: Math.min(progress, 100) }));
-        }, 200);
-      };
-      reader.readAsDataURL(file);
+    valid.forEach((file) => {
+      uploadSingleFile(file);
     });
   };
 
-  const removePhoto = (photoId) => {
-    onPhotosChange(photos.filter(photo => photo.id !== photoId));
-    setUploadProgress(prev => {
-      const updated = { ...prev };
-      delete updated[photoId];
-      return updated;
+  // ---------- Upload single file ----------
+  const uploadSingleFile = async (file) => {
+    const tempId = Date.now() + Math.random();
+    const preview = URL.createObjectURL(file);
+
+    // add temp photo
+    setPhotos((prev) => [
+      ...prev,
+      { id: tempId, preview, url: null, status: 'uploading' },
+    ]);
+
+    setUploadProgress((prev) => ({ ...prev, [tempId]: 0 }));
+
+    const formData = new FormData();
+    formData.append('file', file); // backend expects req.files.file
+
+    // fake progress until backend responds
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => ({
+        ...prev,
+        [tempId]: Math.min((prev[tempId] || 0) + Math.random() * 15, 90),
+      }));
+    }, 200);
+
+    try {
+      const res = await api.post('/report/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      clearInterval(interval);
+
+      const fileUrl = res.data.url;
+
+      setUploadProgress((prev) => ({ ...prev, [tempId]: 100 }));
+
+      setPhotos((prev) =>
+        prev.map((p) =>
+          p.id === tempId ? { ...p, url: fileUrl, status: 'completed' } : p
+        )
+      );
+
+      // برای اینکه گالری پایین دوباره داده‌ها رو بگیره
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      clearInterval(interval);
+      console.error('Upload error:', err);
+
+      setPhotos((prev) =>
+        prev.map((p) => (p.id === tempId ? { ...p, status: 'failed' } : p))
+      );
+    }
+  };
+
+  // ---------- Remove photo from local state ----------
+  const removePhoto = (id) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== id));
+    setUploadProgress((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
     });
   };
 
-  const retryUpload = (photoId) => {
-    const photo = photos.find(p => p.id === photoId);
-    if (photo) {
-      setUploadProgress(prev => ({ ...prev, [photoId]: 0 }));
-      
-      // Simulate retry
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 25;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          setUploadProgress(prev => {
-            const updated = { ...prev };
-            delete updated[photoId];
-            return updated;
-          });
-          
-          onPhotosChange(prevPhotos => 
-            prevPhotos.map(p => 
-              p.id === photoId 
-                ? { ...p, status: 'completed' }
-                : p
-            )
-          );
-        }
-        setUploadProgress(prev => ({ ...prev, [photoId]: Math.min(progress, 100) }));
-      }, 150);
+  // ---------- Final submit (create photo-group) ----------
+  const completedCount = photos.filter((p) => p.status === 'completed').length;
+  const allCompleted =
+    photos.length === maxPhotos &&
+    photos.every((p) => p.status === 'completed');
+
+  const handleSubmitGroup = async () => {
+    if (!allCompleted) return;
+    if (!userId) {
+      alert('کاربر شناسایی نشد.');
+      return;
+    }
+
+    const urls = photos.map((p) => p.url).filter(Boolean);
+
+    try {
+      await api.post('/report/photo-group', {
+        userId,
+        photos: urls,
+      });
+
+      alert('سری عکس با موفقیت ثبت شد.');
+
+      // بعد از ثبت در دیتابیس، لوکال رو خالی می‌کنیم
+      setPhotos([]);
+      setUploadProgress({});
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      console.error('Error saving photo group:', err);
+      alert('در ثبت سری عکس خطایی رخ داد.');
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={containerRef} className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h3 className="text-lg font-bold text-gray-800">آپلود تصاویر پیشرفت</h3>
+        <p className="text-sm text-gray-600">
+          لطفاً حداکثر {maxPhotos} تصویر (مثلاً روبرو، نیم‌رخ و پشت) را برای این
+          نوبت آپلود کنید.
+        </p>
       </div>
 
-      {/* Upload Zone */}
+      {/* Upload zone */}
       <div
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          dragActive
-            ? 'border-primary bg-primary/5'
-            : photos.length >= maxPhotos
-            ? 'border-muted bg-muted/20' :'border-border hover:border-primary hover:bg-primary/5'
-        }`}
         onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
         onDragOver={handleDrag}
+        onDragLeave={handleDrag}
         onDrop={handleDrop}
-      >
+        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition
+          ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+        `}>
         <input
-          ref={fileInputRef}
           type="file"
           multiple
-          accept={acceptedTypes}
-          onChange={handleFileInput}
+          accept="image/*"
+          ref={fileInputRef}
           className="hidden"
-          disabled={photos.length >= maxPhotos}
+          onChange={handleFileInput}
         />
-
-        {photos.length < maxPhotos ? (
-          <div className="space-y-4">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-              <Icon name="Camera" size={24} className="text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground mb-1">
-                Drop photos here or click to browse
-              </p>
-              <p className="text-xs text-muted-foreground">
-                PNG, JPG up to 10MB • {photos.length}/{maxPhotos} photos
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                iconName="Upload"
-                iconPosition="left"
-              >
-                Choose Files
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                iconName="Camera"
-                iconPosition="left"
-              >
-                Take Photo
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <Icon name="CheckCircle" size={24} className="text-success mx-auto" />
-            <p className="text-sm text-muted-foreground">
-              Maximum photos uploaded ({maxPhotos}/{maxPhotos})
-            </p>
-          </div>
-        )}
+        <p className="text-gray-700 mb-2">
+          برای انتخاب چند عکس کلیک کنید یا آن‌ها را بکشید و رها کنید
+        </p>
+        <p className="text-xs text-gray-500">
+          {photos.length} / {maxPhotos}
+        </p>
       </div>
 
-      {/* Photo Previews */}
+      {/* Local preview */}
       {photos.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {photos.map((photo) => (
-            <div key={photo.id} className="relative bg-card border border-border rounded-lg overflow-hidden">
-              <div className="aspect-video relative">
-                <Image
-                  src={photo.preview}
-                  alt={photo.name}
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Upload Progress Overlay */}
-                {uploadProgress[photo.id] !== undefined && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                      <p className="text-sm font-medium">{Math.round(uploadProgress[photo.id])}%</p>
-                    </div>
-                  </div>
-                )}
+            <div
+              key={photo.id}
+              className="relative rounded-lg border overflow-hidden">
+              <img
+                src={photo.url || photo.preview}
+                alt="uploaded"
+                className="w-full h-48 object-cover"
+              />
 
-                {/* Status Icons */}
-                <div className="absolute top-2 right-2">
-                  {photo.status === 'completed' && (
-                    <div className="w-6 h-6 bg-success rounded-full flex items-center justify-center">
-                      <Icon name="Check" size={14} className="text-success-foreground" />
-                    </div>
-                  )}
-                  {photo.status === 'failed' && (
-                    <div className="w-6 h-6 bg-destructive rounded-full flex items-center justify-center">
-                      <Icon name="X" size={14} className="text-destructive-foreground" />
-                    </div>
-                  )}
+              {photo.status === 'uploading' && (
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white">
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <p className="mt-2 text-sm">
+                    {Math.round(uploadProgress[photo.id] || 0)}%
+                  </p>
                 </div>
+              )}
 
-                {/* Remove Button */}
-                <button
-                  onClick={() => removePhoto(photo.id)}
-                  className="absolute top-2 left-2 w-6 h-6 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center animate-spring"
-                >
-                  <Icon name="Trash2" size={14} className="text-white" />
-                </button>
-              </div>
+              {photo.status === 'failed' && (
+                <p className="absolute bottom-0 inset-x-0 bg-red-600 text-white text-xs text-center py-1">
+                  خطا در آپلود
+                </p>
+              )}
 
-              <div className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-card-foreground truncate">
-                      {photo.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {(photo.size / 1024 / 1024).toFixed(1)} MB
-                    </p>
-                  </div>
-                  
-                  {photo.status === 'failed' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => retryUpload(photo.id)}
-                      iconName="RotateCcw"
-                      iconPosition="left"
-                    >
-                      Retry
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => removePhoto(photo.id)}
+                className="absolute top-2 left-2 bg-black/60 text-white rounded-full px-2 py-1 text-xs">
+                حذف
+              </button>
             </div>
           ))}
         </div>
       )}
+
+      {/* Final submit button */}
+      <button
+        type="button"
+        onClick={handleSubmitGroup}
+        disabled={!allCompleted}
+        className={`w-full py-3 rounded-lg font-semibold text-white transition
+          ${
+            allCompleted
+              ? 'bg-blue-600 hover:bg-blue-700'
+              : 'bg-gray-300 cursor-not-allowed'
+          }
+        `}>
+        ثبت نهایی این سری عکس‌ها
+      </button>
+
+      {/* Gallery (سری‌های قبلی) */}
+      <PhotoGallerySection userId={userId} refreshKey={refreshKey} />
+      {/* اگر فعلاً این کامپوننت را نداری، خط بالا و importش را کامنت کن */}
     </div>
   );
 };

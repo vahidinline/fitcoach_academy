@@ -10,11 +10,14 @@ import QuickActions from './components/QuickActions';
 import UpcomingSchedule from './components/UpcomingSchedule';
 import FloatingActionButton from './components/FloatingActionButton';
 import { t } from '../../utils/translations';
+import SubscriptionStatus from 'components/SubscriptionStatus';
+import NotificationBell from 'components/notifications/NotificationBell';
 
 const UserDashboard = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const userId = JSON.parse(localStorage.getItem('userData')).id;
 
   const trainingVideos = [
     {
@@ -39,94 +42,6 @@ const UserDashboard = () => {
       progress: 100,
       completed: true,
     },
-    // {
-    //   id: 3,
-    //   title: t('dashboard.coreStrengthening'),
-    //   thumbnail:
-    //     'https://images.pixabay.com/photo/2017/08/07/14/02/people-2604149_1280.jpg?w=400&h=300&fit=crop',
-    //   duration: 900, // 15 minutes
-    //   difficulty: t('dashboard.advanced'),
-    //   views: 2100,
-    //   progress: 0,
-    //   completed: false,
-    // },
-    // {
-    //   id: 4,
-    //   title: t('dashboard.flexibilityStretching'),
-    //   thumbnail:
-    //     'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-    //   duration: 1500, // 25 minutes
-    //   difficulty: t('dashboard.beginner'),
-    //   views: 750,
-    //   progress: 45,
-    //   completed: false,
-    // },
-    // {
-    //   id: 5,
-    //   title: t('dashboard.hiitFatBurning'),
-    //   thumbnail:
-    //     'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?w=400&h=300&fit=crop',
-    //   duration: 2100, // 35 minutes
-    //   difficulty: t('dashboard.advanced'),
-    //   views: 1800,
-    //   progress: 0,
-    //   completed: false,
-    // },
-    // {
-    //   id: 6,
-    //   title: t('dashboard.upperBodyPower'),
-    //   thumbnail:
-    //     'https://images.pixabay.com/photo/2016/11/19/12/43/barbell-1839086_1280.jpg?w=400&h=300&fit=crop',
-    //   duration: 1650, // 27.5 minutes
-    //   difficulty: t('dashboard.intermediate'),
-    //   views: 1350,
-    //   progress: 30,
-    //   completed: false,
-    // },
-    // {
-    //   id: 7,
-    //   title: t('dashboard.legDayIntensive'),
-    //   thumbnail:
-    //     'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop',
-    //   duration: 1950, // 32.5 minutes
-    //   difficulty: t('dashboard.advanced'),
-    //   views: 950,
-    //   progress: 0,
-    //   completed: false,
-    // },
-    // {
-    //   id: 8,
-    //   title: t('dashboard.recoveryYoga'),
-    //   thumbnail:
-    //     'https://images.pexels.com/photos/317157/pexels-photo-317157.jpeg?w=400&h=300&fit=crop',
-    //   duration: 1800, // 30 minutes
-    //   difficulty: t('dashboard.beginner'),
-    //   views: 1100,
-    //   progress: 100,
-    //   completed: true,
-    // },
-    // {
-    //   id: 9,
-    //   title: t('dashboard.functionalMovement'),
-    //   thumbnail:
-    //     'https://images.pixabay.com/photo/2017/08/07/14/02/man-2604149_1280.jpg?w=400&h=300&fit=crop',
-    //   duration: 1350, // 22.5 minutes
-    //   difficulty: t('dashboard.intermediate'),
-    //   views: 680,
-    //   progress: 60,
-    //   completed: false,
-    // },
-    // {
-    //   id: 10,
-    //   title: t('dashboard.athleticPerformance'),
-    //   thumbnail:
-    //     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
-    //   duration: 2400, // 40 minutes
-    //   difficulty: t('dashboard.advanced'),
-    //   views: 1450,
-    //   progress: 0,
-    //   completed: false,
-    // },
   ];
 
   useEffect(() => {
@@ -285,43 +200,15 @@ const UserDashboard = () => {
 
       <main dir="rtl" className="pt-16 pb-20 lg:pl-64 lg:pb-6">
         <div className="p-4 lg:p-6 space-y-6">
-          {/* Welcome Section */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground mb-2 text-right">
-              {t('dashboard.welcomeBack', {
-                name: name || dashboardData.user.name || 'دوست عزیز',
-              })}
-            </h1>
-            <p className="text-muted-foreground">
-              {t('dashboard.readyToContinue')}
-            </p>
-          </div>
-
           {/* User Status Card */}
-          <UserStatusCard
-            user={dashboardData.user}
-            trialDaysRemaining={trialDaysRemaining}
-          />
+          <UserStatusCard userId={userId} />
 
-          {/* Stats Cards */}
-          <StatsCards stats={dashboardData.stats} />
-          {/* <TrainingVideoGrid videos={trainingVideos} /> */}
+          <SubscriptionStatus userId={userId} />
 
-          {/* Main Content Grid */}
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <ProgressSection
-                progressReports={dashboardData.progressReports}
-              />
-            </div>
-
-            <div className="space-y-6">
-              <UpcomingSchedule schedule={dashboardData.upcomingSchedule} />
-            </div>
-          </div> */}
+          <TrainingVideoGrid videos={trainingVideos} />
         </div>
       </main>
-      <FloatingActionButton />
+
       <BottomTabNavigation />
     </div>
   );

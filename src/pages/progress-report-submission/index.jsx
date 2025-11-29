@@ -10,6 +10,9 @@ import CalorieTrackingSection from './components/CalorieTrackingSection';
 import ProgressNotesSection from './components/ProgressNotesSection';
 import SubmissionConfirmationModal from './components/SubmissionConfirmationModal';
 import WeightInputs from './components/WeightInputs';
+import ReportQuota from './components/ReportQuota';
+import WeightDashboard from './components/WeightDashboard';
+import CoachFeedbackViewer from './components/CoachFeedbackViewer';
 
 const ProgressReportSubmission = () => {
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ const ProgressReportSubmission = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-
+  const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
   // Form data state
   const [formData, setFormData] = useState({
     beforeAfterPhotos: [],
@@ -78,36 +81,31 @@ const ProgressReportSubmission = () => {
   }, []);
 
   const sections = [
-    // {
-    //   id: 'photos',
-    //   label: 'اصاویر قبل و بعد',
-    //   icon: 'Camera',
-    //   description: 'آپلود تصاویر برای مقایسه پیشرفت',
-    // },
+    {
+      id: 'photos',
+      label: 'تصاویر قبل و بعد',
+      icon: 'Camera',
+    },
     {
       id: 'measurements',
       label: 'سایزها',
       icon: 'Ruler',
-      description: 'ثبت اندازه‌های بدن',
     },
     {
       id: 'weight',
       label: 'وزن',
       icon: 'Ruler',
-      description: 'ثبت وزن فعلی و هدف',
     },
-    // {
-    //   id: 'calories',
-    //   label: 'Calorie Tracking',
-    //   icon: 'Smartphone',
-    //   description: 'App screenshots'
-    // },
-    // {
-    //   id: 'notes',
-    //   label: 'یادداشت‌های پیشرفت',
-    //   icon: 'FileText',
-    //   description: 'بازخورد دقیق',
-    // },
+    {
+      id: 'calories',
+      label: 'گزارش کالری',
+      icon: 'Smartphone',
+    },
+    {
+      id: 'notes',
+      label: ' فیدبک مربی',
+      icon: 'FileText',
+    },
   ];
 
   const hasAnyData = () => {
@@ -117,63 +115,6 @@ const ProgressReportSubmission = () => {
       formData.screenshots.length > 0 ||
       Object.values(formData.notes).some((note) => note && note.trim())
     );
-  };
-
-  const getCompletionStatus = () => {
-    let completed = 0;
-    let total = 4;
-
-    if (formData.beforeAfterPhotos.length > 0) completed++;
-    if (
-      Object.keys(formData.measurements).filter((key) => key !== 'unitSystem')
-        .length > 0
-    )
-      completed++;
-    if (formData.screenshots.length > 0) completed++;
-    if (Object.values(formData.notes).some((note) => note && note.trim()))
-      completed++;
-
-    return {
-      completed,
-      total,
-      percentage: Math.round((completed / total) * 100),
-    };
-  };
-
-  const handleSaveDraft = () => {
-    localStorage.setItem(
-      'progressReportDraft',
-      JSON.stringify({
-        ...formData,
-        lastSaved: new Date().toISOString(),
-      })
-    );
-    setIsDraftSaved(true);
-    setLastSaved(new Date());
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-
-    try {
-      // Simulate submission process
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Clear draft after successful submission
-      localStorage.removeItem('progressReportDraft');
-
-      // Navigate to dashboard with success message
-      navigate('/user-dashboard', {
-        state: {
-          message:
-            'Progress report submitted successfully! Your coach will review it within 24-48 hours.',
-          type: 'success',
-        },
-      });
-    } catch (error) {
-      console.error('Submission failed:', error);
-      setIsSubmitting(false);
-    }
   };
 
   const renderActiveSection = () => {
@@ -187,7 +128,7 @@ const ProgressReportSubmission = () => {
             onPhotosChange={(photos) =>
               setFormData((prev) => ({ ...prev, beforeAfterPhotos: photos }))
             }
-            maxPhotos={6}
+            maxPhotos={3}
           />
         );
       case 'measurements':
@@ -210,59 +151,31 @@ const ProgressReportSubmission = () => {
         );
       case 'weight':
         return (
-          <WeightInputs
-            measurements={formData.measurements}
-            onMeasurementsChange={(measurements) =>
-              setFormData((prev) => ({ ...prev, measurements }))
-            }
-          />
+          <WeightDashboard />
+          // <WeightInputs
+          //   measurements={formData.measurements}
+          //   onMeasurementsChange={(measurements) =>
+          //     setFormData((prev) => ({ ...prev, measurements }))
+          //   }
+          // />
         );
+      case 'notes':
+        return <CoachFeedbackViewer userId={userId} />;
       default:
         return null;
     }
   };
 
-  const completionStatus = getCompletionStatus();
-
   return (
-    <div className="min-h-screen bg-background">
+    <div dir="rtl" className="min-h-screen bg-background">
       <ContextualHeader />
 
       <div className="pt-16 pb-20 lg:pl-64 lg:pb-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground mb-2">
-                  گزارش پیشرفت
-                </h1>
-                <p className="text-muted-foreground">
-                  سفر تناسب اندام خود را مستند کنید و بازخورد شخصی از مربی خود
-                  دریافت کنید
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-                {isDraftSaved && lastSaved && (
-                  <div className="flex items-center space-x-2 text-xs text-success">
-                    <Icon name="Check" size={14} />
-                    <span>Saved {lastSaved.toLocaleTimeString()}</span>
-                  </div>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSaveDraft}
-                  iconName="Save"
-                  iconPosition="left">
-                  <span>ذخیره پیش‌نویس</span>
-                </Button>
-              </div>
-            </div>
-
             {/* Progress Indicator */}
-            <div className="bg-card border border-border rounded-lg p-4">
+            {/* <div className="bg-card border border-border rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-card-foreground">
                   {completionStatus.percentage}% تکمیل
@@ -285,7 +198,7 @@ const ProgressReportSubmission = () => {
                       completionStatus.total - completionStatus.completed
                     } sections remaining`}
               </p>
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -396,25 +309,6 @@ const ProgressReportSubmission = () => {
                 </Button>
               )}
             </div>
-
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={handleSaveDraft}
-                iconName="Save"
-                iconPosition="left">
-                Save Draft
-              </Button>
-
-              <Button
-                variant="default"
-                onClick={() => setShowConfirmationModal(true)}
-                disabled={!hasAnyData()}
-                iconName="Send"
-                iconPosition="left">
-                Submit Report
-              </Button>
-            </div>
           </div>
         </div>
       </div>
@@ -422,13 +316,13 @@ const ProgressReportSubmission = () => {
       <BottomTabNavigation />
 
       {/* Confirmation Modal */}
-      <SubmissionConfirmationModal
+      {/* <SubmissionConfirmationModal
         isOpen={showConfirmationModal}
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleSubmit}
         formData={formData}
         isSubmitting={isSubmitting}
-      />
+      /> */}
     </div>
   );
 };

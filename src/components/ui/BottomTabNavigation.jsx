@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
+import { useNotifications } from 'context/NotificationContext';
+import { Bell } from 'lucide-react';
 
 const BottomTabNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('');
+  const { unreadCount } = useNotifications();
 
   const navigationItems = [
     {
@@ -32,14 +35,14 @@ const BottomTabNavigation = () => {
       badge: null,
       status: 'active',
     },
-    // {
-    //   id: 'progress',
-    //   label: 'گزارش',
-    //   path: '/progress-report-submission',
-    //   icon: 'TrendingUp',
-    //   badge: null,
-    //   status: 'deActivated',
-    // },
+    {
+      id: 'progress',
+      label: 'گزارش',
+      path: '/progress-report-submission',
+      icon: 'TrendingUp',
+      badge: null,
+      status: 'deActivated',
+    },
     // {
     //   id: 'payment',
     //   label: 'پرداخت',
@@ -97,6 +100,7 @@ const BottomTabNavigation = () => {
   return (
     <>
       {/* Mobile Bottom Navigation */}
+
       <div className=" lg:hidden fixed bottom-0  right-0 left-0 bg-card border-t border-border z-100 pb-safe">
         <div className="flex items-center justify-around px-4 py-2">
           {navigationItems.map((item) => (

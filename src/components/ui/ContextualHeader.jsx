@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
+import { Bell } from 'lucide-react';
+import { useNotifications } from 'context/NotificationContext';
+import NotificationsPanel from 'components/NotificationsPanel';
 
 const ContextualHeader = () => {
   const location = useLocation();
@@ -8,6 +11,8 @@ const ContextualHeader = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [accountDetails, setAccountDetails] = useState(false);
   const [user, setUser] = useState('');
+  const { unreadCount } = useNotifications();
+  const [open, setOpen] = useState(false);
 
   const getHeaderConfig = () => {
     const path = location.pathname;
@@ -94,6 +99,23 @@ const ContextualHeader = () => {
     <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-200 lg:left-64">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Left Section */}
+        <div className="relative">
+          {/* Bell Icon */}
+          <button
+            onClick={() => setOpen(true)}
+            className="relative p-1 focus:outline-none">
+            <Bell size={26} className="text-gray-800" />
+
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Panel */}
+          {open && <NotificationsPanel onClose={() => setOpen(false)} />}
+        </div>
         <div className="flex items-center space-x-4">
           {config.showBack && (
             <button
@@ -105,13 +127,7 @@ const ContextualHeader = () => {
 
           {config.showLogo && (
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                {/* <Icon
-                  name="Dumbbell"
-                  size={20}
-                  className="text-primary-foreground"
-                /> */}
-              </div>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"></div>
               <span className="text-lg font-semibold text-foreground hidden sm:block">
                 آذی‌شفیعی
               </span>
@@ -126,80 +142,7 @@ const ContextualHeader = () => {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center space-x-2">
-          {config.showActions && (
-            <>
-              {/* Search Button */}
-              {/* <button className="p-2 rounded-lg hover:bg-muted animate-spring hidden sm:flex">
-                <Icon
-                  name="Search"
-                  size={20}
-                  className="text-muted-foreground"
-                />
-              </button> */}
-
-              {/* User Avatar */}
-              <div className="flex items-center space-x-2 ml-2">
-                {/* <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                  <button
-                    onClick={toggleAccount}
-                    className="p-2 rounded-lg hover:bg-muted animate-spring relative">
-                    <Icon
-                      name="User"
-                      size={16}
-                      className="text-secondary-foreground"
-                    />
-                  </button>
-                </div> */}
-
-                {accountDetails &&
-                  {
-                    /* <div className="max-h-64 overflow-y-auto">
-                      <div className="p-4 border-b border-border hover:bg-muted animate-spring">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-popover-foreground"></p>
-                            <p className="text-xs text-muted-foreground mt-1">
-
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              2 hours ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 border-b border-border hover:bg-muted animate-spring">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-muted rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-popover-foreground">
-                              Progress report reviewed
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Your coach has provided feedback on your latest
-                              submission
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              1 day ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div> */
-                  }}
-              </div>
-            </>
-          )}
-
-          {/* Secure Payment Indicator */}
-          {config.type === 'secure' && (
-            <div className="flex items-center space-x-2 px-3 py-1 bg-success/10 rounded-full">
-              <Icon name="Shield" size={16} className="text-success" />
-              <span className="text-xs font-medium text-success">Secure</span>
-            </div>
-          )}
-        </div>
+        <div className="flex items-center space-x-2"></div>
       </div>
 
       {/* Click outside to close notifications */}

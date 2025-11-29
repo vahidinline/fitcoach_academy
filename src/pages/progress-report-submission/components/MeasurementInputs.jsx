@@ -1,233 +1,119 @@
+// MeasurementForm.jsx
 import React, { useState } from 'react';
-import Icon from '../../../components/AppIcon';
-import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
-import Select from '../../../components/ui/Select';
+import api from 'api/api';
+import MeasurementChart from './MeasurementCharts';
 
-const MeasurementInputs = ({ measurements, onMeasurementsChange }) => {
-  const [unitSystem, setUnitSystem] = useState('metric');
+export default function MeasurementForm({ onSaved }) {
+  const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
+  const [status, setStatus] = useState(null);
+  const [data, setData] = useState({
+    unitSystem: 'metric',
+    chest: '',
+    waist: '',
+    hips: '',
+    bicep: '',
+    custom: [],
+  });
 
-  const unitOptions = [
-    { value: 'metric', label: 'Metric (kg, cm)' },
-    { value: 'imperial', label: 'Imperial (lbs, inches)' },
-  ];
+  const [customItem, setCustomItem] = useState({
+    label: '',
+    value: '',
+    unit: '',
+  });
 
-  const measurementFields = [
-    // {
-    //   key: 'weight',
-    //   label: 'Weight',
-    //   icon: 'Scale',
-    //   unit: unitSystem === 'metric' ? 'kg' : 'lbs',
-    //   placeholder: unitSystem === 'metric' ? '70.5' : '155.3',
-    // },
-    // {
-    //   key: 'bodyFat',
-    //   label: 'Body Fat Percentage',
-    //   icon: 'Percent',
-    //   unit: '%',
-    //   placeholder: '15.2',
-    // },
-    {
-      key: 'chest',
-      label: 'سینه',
-      icon: 'Ruler',
-      unit: unitSystem === 'metric' ? 'cm' : 'inches',
-      placeholder: unitSystem === 'metric' ? '95' : '37.4',
-    },
-    {
-      key: 'waist',
-      label: 'کمر',
-      icon: 'Ruler',
-      unit: unitSystem === 'metric' ? 'cm' : 'inches',
-      placeholder: unitSystem === 'metric' ? '80' : '31.5',
-    },
-    {
-      key: 'hips',
-      label: 'هیپ',
-      icon: 'Ruler',
-      unit: unitSystem === 'metric' ? 'cm' : 'inches',
-      placeholder: unitSystem === 'metric' ? '90' : '35.4',
-    },
-    {
-      key: 'bicep',
-      label: 'بازو',
-      icon: 'Ruler',
-      unit: unitSystem === 'metric' ? 'cm' : 'inches',
-      placeholder: unitSystem === 'metric' ? '35' : '13.8',
-    },
-  ];
+  const save = async () => {
+    const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
 
-  const handleMeasurementChange = (key, value) => {
-    onMeasurementsChange({
-      ...measurements,
-      [key]: value,
-      unitSystem: unitSystem,
-    });
-  };
-
-  const addCustomMeasurement = () => {
-    const customKey = `custom_${Date.now()}`;
-    onMeasurementsChange({
-      ...measurements,
-      [customKey]: {
-        label: '',
-        value: '',
-        unit: unitSystem === 'metric' ? 'cm' : 'inches',
+    const payload = {
+      userId,
+      unitSystem: data.unitSystem,
+      measurements: {
+        chest: data.chest,
+        waist: data.waist,
+        hips: data.hips,
+        bicep: data.bicep,
+        // اگر custom هم خواستی اضافه کنی:
+        // ...data.custom
       },
-    });
+      custom: data.custom, // اگر می‌خواهی جدا هم بفرستی
+    };
+
+    await api.post('/report/measurement', payload);
+    onSaved?.();
+    setStatus('saved');
+    setTimeout(() => setStatus(null), 2000);
   };
 
-  const removeCustomMeasurement = (key) => {
-    const updated = { ...measurements };
-    delete updated[key];
-    onMeasurementsChange(updated);
-  };
-
-  const updateCustomMeasurement = (key, field, value) => {
-    onMeasurementsChange({
-      ...measurements,
-      [key]: {
-        ...measurements[key],
-        [field]: value,
-      },
+  const addCustom = () => {
+    if (!customItem.label || !customItem.value) return;
+    setData({
+      ...data,
+      custom: [...data.custom, customItem],
     });
+    setCustomItem({ label: '', value: '', unit: '' });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            سایز ها و اندازه‌ها
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            پیشرفت فیزیکی خود را با اندازه‌گیری‌های دقیق پیگیری کنید
-          </p>
-        </div>
-        <Select
-          options={unitOptions}
-          value={unitSystem}
-          onChange={setUnitSystem}
-          className="w-40"
+    <div className="p-4 bg-white shadow rounded-xl space-y-4">
+      <h3 className="font-bold text-lg">ثبت اندازه‌های جدید</h3>
+
+      {['chest', 'waist', 'hips', 'bicep'].map((k) => (
+        <input
+          key={k}
+          type="number"
+          placeholder={k}
+          value={data[k] || ''}
+          onChange={(e) => setData({ ...data, [k]: e.target.value })}
+          className="border p-2 w-full rounded"
         />
-      </div>
+      ))}
 
-      {/* Standard Measurements */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {measurementFields.map((field) => (
-          <div key={field.key} className="relative">
-            <Input
-              label={field.label}
-              type="number"
-              placeholder={field.placeholder}
-              value={measurements[field.key] || ''}
-              onChange={(e) =>
-                handleMeasurementChange(field.key, e.target.value)
-              }
-              className="pr-16"
-            />
-            <div className="absolute right-3 top-9 flex items-center space-x-2 text-muted-foreground">
-              <Icon name={field.icon} size={16} />
-              <span className="text-sm font-medium">{field.unit}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Custom fields */}
+      {/* <div className="flex gap-2">
+        <input
+          className="border p-2 w-1/3"
+          placeholder="label"
+          value={customItem.label}
+          onChange={(e) =>
+            setCustomItem({ ...customItem, label: e.target.value })
+          }
+        />
+        <input
+          className="border p-2 w-1/3"
+          placeholder="value"
+          type="number"
+          value={customItem.value}
+          onChange={(e) =>
+            setCustomItem({ ...customItem, value: e.target.value })
+          }
+        />
+        <input
+          className="border p-2 w-1/3"
+          placeholder="unit"
+          value={customItem.unit}
+          onChange={(e) =>
+            setCustomItem({ ...customItem, unit: e.target.value })
+          }
+        />
+        <button
+          onClick={addCustom}
+          className="bg-blue-600 text-white px-3 rounded-xl">
+          +
+        </button>
+      </div> */}
 
-      {/* Custom Measurements */}
-      {Object.keys(measurements).filter((key) => key.startsWith('custom_'))
-        .length > 0 && (
-        <div className="space-y-4">
-          <h4 className="text-md font-medium text-foreground">
-            اندازه‌گیری‌های سفارشی
-          </h4>
-          {Object.entries(measurements)
-            .filter(([key]) => key.startsWith('custom_'))
-            .map(([key, measurement]) => (
-              <div
-                key={key}
-                className="flex items-end space-x-3 p-4 bg-muted/30 rounded-lg">
-                <div className="flex-1">
-                  <Input
-                    label="Measurement Name"
-                    type="text"
-                    placeholder="e.g., Thigh, Forearm"
-                    value={measurement.label || ''}
-                    onChange={(e) =>
-                      updateCustomMeasurement(key, 'label', e.target.value)
-                    }
-                  />
-                </div>
-                <div className="flex-1">
-                  <Input
-                    label="Value"
-                    type="number"
-                    placeholder="0.0"
-                    value={measurement.value || ''}
-                    onChange={(e) =>
-                      updateCustomMeasurement(key, 'value', e.target.value)
-                    }
-                  />
-                </div>
-                <div className="w-20">
-                  <Input
-                    label="Unit"
-                    type="text"
-                    value={
-                      measurement.unit ||
-                      (unitSystem === 'metric' ? 'cm' : 'inches')
-                    }
-                    onChange={(e) =>
-                      updateCustomMeasurement(key, 'unit', e.target.value)
-                    }
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeCustomMeasurement(key)}
-                  iconName="Trash2"
-                  className="text-destructive hover:text-destructive"
-                />
-              </div>
-            ))}
+      <button
+        onClick={save}
+        className="bg-blue-600 text-white py-2 w-full rounded-lg">
+        ذخیره
+      </button>
+      {status === 'saved' && (
+        <div className="p-2 text-center bg-green-100 text-green-700 rounded-lg">
+          اندازه‌گیری با موفقیت ذخیره شد ✔️
         </div>
       )}
 
-      {/* Add Custom Measurement Button */}
-      <Button
-        variant="outline"
-        onClick={addCustomMeasurement}
-        iconName="Plus"
-        iconPosition="left"
-        className="w-full sm:w-auto">
-        Add Custom Measurement
-      </Button>
-
-      {/* Measurement Tips */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <Icon name="Info" size={20} className="text-primary mt-0.5" />
-          <div>
-            <h4 className="text-sm font-medium text-primary mb-2">
-              Measurement Tips
-            </h4>
-            <ul className="text-xs text-primary/80 space-y-1">
-              <li>
-                • Take measurements at the same time of day for consistency
-              </li>
-              <li>• Measure on bare skin or tight-fitting clothing</li>
-              <li>
-                • Don't pull the tape too tight - it should be snug but not
-                compressing
-              </li>
-              <li>• Record measurements weekly for best progress tracking</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <MeasurementChart userId={userId} />
     </div>
   );
-};
-
-export default MeasurementInputs;
+}

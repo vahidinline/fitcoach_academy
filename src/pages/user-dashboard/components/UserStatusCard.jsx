@@ -1,143 +1,249 @@
-import React from 'react';
-import Icon from '../../../components/AppIcon';
-import { useNavigate } from 'react-router-dom';
-import { UserRoundPen, Users } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Users } from 'lucide-react';
+import gsap from 'gsap';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fa';
+import api from 'api/api';
 
-const UserStatusCard = ({ user, trialDaysRemaining }) => {
-  const navigate = useNavigate();
-  const getStatusConfig = () => {
-    switch (user.status) {
-      case 'active':
-        return {
-          color: 'text-success',
-          bgColor: 'bg-success/10',
-          icon: 'CheckCircle',
-          label: 'کاربر فعال',
-        };
-      case 'trial':
-        return {
-          color: 'text-warning',
-          bgColor: 'bg-warning/10',
-          icon: 'Clock',
-          label: 'دوره آزمایشی',
-        };
-      case 'pending':
-        return {
-          color: 'text-muted-foreground',
-          bgColor: 'bg-muted',
-          icon: 'AlertCircle',
-          label: 'در انتظار فعال شدن',
-        };
-      default:
-        return {
-          color: 'text-muted-foreground',
-          bgColor: 'bg-muted',
-          icon: 'User',
-          label: 'عضو',
-        };
+const toFa = (num) =>
+  num ? num.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]) : '—';
+
+const UserStatusCard = ({ userId }) => {
+  const [client, setClient] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [assessment, setAssessment] = useState(null);
+  const [weightProgress, setWeightProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Ref for GSAP animation
+  const cardRef = useRef(null);
+
+  // Animate card entry
+  useEffect(() => {
+    if (!loading) {
+      gsap.from(cardRef.current, {
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+      });
     }
+  }, [loading]);
+
+  // Load all API data
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchAll = async () => {
+      try {
+        const results = await Promise.allSettled([
+          api.get(`/api/client/${userId}`),
+          api.get(`/api/subscription/active/${userId}`),
+          api.get(`/ShapeUpAssessment/${userId}`),
+          api.get(`/report/weight/${userId}`),
+        ]);
+
+        const [clientRes, subRes, assessRes, weightRes] = results;
+
+        if (clientRes.status === 'fulfilled') {
+          setClient(clientRes.value.data?.data || clientRes.value.data);
+        }
+
+        if (subRes.status === 'fulfilled') {
+          setSubscription(subRes.value.data?.subscription || null);
+        }
+
+        if (assessRes.status === 'fulfilled') {
+          setAssessment(assessRes.value.data?.data || null);
+        }
+
+        if (weightRes.status === 'fulfilled') {
+          setWeightProgress(weightRes.value.data?.data || weightRes.value.data);
+        }
+      } catch (err) {
+        console.error('Critical fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [userId]);
+
+  // -----------------------
+  // UI Loading (Glass + Glow)
+  // -----------------------
+  if (loading) {
+    return (
+      <div className="backdrop-blur-xl bg-white/10 rounded-xl p-6 border border-white/20 shadow-lg animate-pulse">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-muted-foreground text-center mt-4">
+          در حال بارگذاری...
+        </p>
+      </div>
+    );
+  }
+
+  if (!client) {
+    return (
+      <div className="backdrop-blur-xl bg-red-100/20 rounded-xl p-6 border border-red-300/20 shadow-lg">
+        <p className="text-red-500 text-sm text-center">کاربر یافت نشد.</p>
+      </div>
+    );
+  }
+
+  // -----------------------
+  // Data extraction
+  // -----------------------
+  const { name, email, photo } = client;
+  const height = assessment?.height || null;
+  const mainGoal = assessment?.mainGoal;
+  const startingWeight = weightProgress?.startingWeight || null;
+  const goalWeight = weightProgress?.goalWeight || null;
+
+  const lastEntry =
+    weightProgress?.weightEntries?.length > 0
+      ? weightProgress.weightEntries[weightProgress.weightEntries.length - 1]
+      : null;
+
+  const currentWeight = lastEntry?.weight || startingWeight;
+
+  const calcBMI = () => {
+    if (!height || !currentWeight) return null;
+    const h = height / 100;
+    return (currentWeight / (h * h)).toFixed(1);
   };
 
-  const statusConfig = getStatusConfig();
+  // Subscription
+  const sub = subscription;
+  const daysLeft = sub?.expiresAt
+    ? dayjs(sub.expiresAt).diff(dayjs(), 'day')
+    : null;
+
+  const remainingReports = sub ? sub.reportLimit - sub.reportsUsed : 0;
+  const jalaliExpiry = sub?.expiresAt
+    ? dayjs(sub.expiresAt).calendar('jalali').locale('fa').format('YYYY/MM/DD')
+    : '—';
+
+  const subscriptionLabel =
+    sub?.productType === 'pro'
+      ? 'پرو (۳ ماهه)'
+      : sub?.productType === 'private'
+      ? 'پرایویت (۱ ماهه)'
+      : sub?.productType === 'academy'
+      ? 'آکادمی (دائمی)'
+      : '—';
 
   return (
-    <div className="bg-card rounded-lg p-6 border border-border shadow-elevation-1">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-            <Icon name="User" size={24} className="text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-card-foreground">
-              {user.name}
-            </h2>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-          </div>
-        </div>
-        <div
-          className={`px-3 py-1 rounded-full ${statusConfig.bgColor} flex items-center space-x-2`}>
-          <Icon
-            name={statusConfig.icon}
-            size={16}
-            className={statusConfig.color}
+    <div
+      ref={cardRef}
+      className="
+    bg-gradient-to-r from-blue-100  to-white-400 opacity-40
+    rounded-2xl
+    p-6
+    border border-white/60
+    shadow-xl shadow-black/10
+    text-right
+    text-gray-900
+  ">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <img
+            src={photo || '/default-avatar.png'}
+            className="w-16 h-16 rounded-full border border-white/30 shadow"
           />
-          <span className={`text-sm font-medium ${statusConfig.color}`}>
-            {statusConfig.label}
-          </span>
-          {user.status === 'active' && (
-            <div className="text-center flex flex-row items-center">
-              <button
-                onClick={() =>
-                  window.open('https://t.me/+6oHMFATMqqFkMGI0', '_blank')
-                }
-                className="btn bg-success px-1 text-white flex items-center  space-x-2">
-                <Users />
-                عضویت در گروه تلگرام
-                {/* <svg
-                  width="64px"
-                  height="64px"
-                  viewBox="0 0 32 32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g
-                    id="SVGRepo_tracerCarrier"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    {' '}
-                    <circle
-                      cx="16"
-                      cy="16"
-                      r="14"
-                      fill="url(#paint0_linear_87_7225)"></circle>{' '}
-                    <path
-                      d="M22.9866 10.2088C23.1112 9.40332 22.3454 8.76755 21.6292 9.082L7.36482 15.3448C6.85123 15.5703 6.8888 16.3483 7.42147 16.5179L10.3631 17.4547C10.9246 17.6335 11.5325 17.541 12.0228 17.2023L18.655 12.6203C18.855 12.4821 19.073 12.7665 18.9021 12.9426L14.1281 17.8646C13.665 18.3421 13.7569 19.1512 14.314 19.5005L19.659 22.8523C20.2585 23.2282 21.0297 22.8506 21.1418 22.1261L22.9866 10.2088Z"
-                      fill="white"></path>{' '}
-                    <defs>
-                      {' '}
-                      <linearGradient
-                        id="paint0_linear_87_7225"
-                        x1="16"
-                        y1="2"
-                        x2="16"
-                        y2="30"
-                        gradientUnits="userSpaceOnUse">
-                        {' '}
-                        <stop stop-color="#37BBFE"></stop>{' '}
-                        <stop offset="1" stop-color="#007DBB"></stop>{' '}
-                      </linearGradient>{' '}
-                    </defs>{' '}
-                  </g>
-                </svg> */}
-                <p className="text-sm text-warning font-medium"></p>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="text-center">
-          <p className="text-2xl font-bold text-card-foreground">
-            {user.membershipType}
-          </p>
-          {/* <p className="text-sm text-muted-foreground">عضویت</p> */}
-        </div>
-      </div>
-
-      {user.status === 'trial' && trialDaysRemaining <= 3 && (
-        <div className="mt-4 p-3 bg-warning/10 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <Icon name="AlertTriangle" size={16} className="text-warning" />
-            <p className="text-sm text-warning font-medium">
-              دسترسی محدود. برای دسترسی نامحدود لطفا اکانت خود را ارتقا دهید
-            </p>
+          <div>
+            <h2 className="ext-xl font-bold text-gray-900">{name}</h2>
+            <p className="text-white/30 text-sm">{email}</p>
           </div>
         </div>
-      )}
 
-      <div className="mt-4 p-3  rounded-lg"></div>
+        <span className="text-xs px-3 py-1 rounded-full bg-green-400 border border-green-300/20 text-white">
+          فعال
+        </span>
+      </div>
+
+      {/* SUBSCRIPTION */}
+      <div className="grid grid-cols-2 gap-4 text-center text-white/80 border-t border-white/20 pt-4">
+        <div>
+          <p className="text-xs text-gray-600">نوع اشتراک</p>
+          <p className="text-lg font-bold text-gray-900">{subscriptionLabel}</p>
+        </div>
+
+        <div>
+          <p className="text-xs text-gray-600">روز باقی‌مانده</p>
+          <p className="text-lg font-bold text-gray-900">{toFa(daysLeft)}</p>
+        </div>
+
+        <div>
+          <p className="text-xs text-gray-600">گزارش‌های باقی‌مانده</p>
+          <p className="text-lg font-bold text-gray-900">
+            {toFa(remainingReports)}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs text-gray-600">تاریخ پایان</p>
+          <p className="text-lg font-bold text-gray-900">{jalaliExpiry}</p>
+        </div>
+      </div>
+
+      {/* STATS */}
+      {/* BODY METRICS */}
+      <div className="mt-6 border-t border-white/40 pt-4">
+        <h3 className="text-lg font-bold mb-4 text-gray-900">وضعیت بدنی</h3>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between bg-white/30 p-3 rounded-xl backdrop-blur-md border border-white/40">
+            <span className="text-gray-700">وزن فعلی</span>
+            <span className="font-bold text-gray-900">
+              {toFa(currentWeight)} کیلو
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between bg-white/30 p-3 rounded-xl backdrop-blur-md border border-white/40">
+            <span className="text-gray-700">وزن اولیه</span>
+            <span className="font-bold text-gray-900">
+              {toFa(startingWeight)} کیلو
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between bg-white/30 p-3 rounded-xl backdrop-blur-md border border-white/40">
+            <span className="text-gray-700">وزن هدف</span>
+            <span className="font-bold text-gray-900">
+              {toFa(goalWeight)} کیلو
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between bg-white/30 p-3 rounded-xl backdrop-blur-md border border-white/40">
+            <span className="text-gray-700">قد</span>
+            <span className="font-bold text-gray-900">
+              {toFa(height)} سانتی‌متر
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between bg-white/30 p-3 rounded-xl backdrop-blur-md border border-white/40">
+            <span className="text-gray-700">BMI</span>
+            <span className="font-bold text-gray-900">{toFa(calcBMI())}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* GOAL */}
+      <div className="border-t border-white/20 pt-4 text-center text-white mt-6">
+        <p className="text-xs text-gray-600">هدف</p>
+        <p className="text-lg font-bold text-gray-900">
+          {mainGoal === 'recomp'
+            ? 'بادی‌رکامپ'
+            : mainGoal === 'fat_loss'
+            ? 'کاهش وزن'
+            : mainGoal === 'muscle_gain'
+            ? 'افزایش حجم'
+            : '—'}
+        </p>
+      </div>
     </div>
   );
 };
