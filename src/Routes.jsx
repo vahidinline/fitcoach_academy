@@ -33,7 +33,7 @@ const Routes = () => {
             <Route path="/login" element={<LoginIndex />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
             <Route path="/register" element={<RegistrationStepper />} />
-            <Route path="//payment/result" element={<PaymentResult />} />
+            <Route path="/payment/result" element={<PaymentResult />} />
 
             <Route
               path="/progress-report-submission"

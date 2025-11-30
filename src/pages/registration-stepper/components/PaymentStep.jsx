@@ -3,269 +3,162 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from 'components/ui/Select';
-import { useCheckoutStore } from 'store/useCheckoutStore';
 import { useAuthStore } from 'store/useAuthStore';
+import api from 'api/api';
 
-const PaymentStep = ({ onComplete, onBack, onSkipTrial }) => {
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+const PaymentStep = ({ onComplete, onBack }) => {
   const {
-    selectedService,
     selectedLocation,
     selectedServicePrice,
-    selectedServiceName,
     selectedServiceRialPrice,
-    contactInfo,
+    selectedServiceName,
   } = useAuthStore();
 
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: '',
-    email: contactInfo || '',
-    firstName: '',
-    lastName: '',
-    phone: contactInfo || '',
-    priceRial: selectedServiceRialPrice.discountedPrice,
-    price: selectedServicePrice.discountedPrice,
-  });
+  const basePrice =
+    selectedLocation === 'iran'
+      ? selectedServiceRialPrice.price
+      : selectedServicePrice.price;
 
-  const getPaymentMethods = () => {
-    if (selectedLocation === 'iran') {
-      return [
-        {
-          value: 'shaparak',
-          label: 'درگاه شاپرک',
-          description: 'پرداخت امن از طریق درگاه بانکی',
-        },
-      ];
-    } else {
-      return [
-        {
-          value: 'stripe',
-          label: 'Credit/Debit Card',
-          description: 'Visa, Mastercard, American Express',
-        },
-        // {
-        //   value: 'PayPal',
-        //   label: 'PayPal',
-        //   description: 'Secure online payments through PayPal',
-        // },
-      ];
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // ---- Discount states ----
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [discountError, setDiscountError] = useState('');
+  const [discountSuccess, setDiscountSuccess] = useState('');
+  const [finalPrice, setFinalPrice] = useState(basePrice);
+
+  // ----------------------
+  // APPLY DISCOUNT
+  // ----------------------
+  const handleApplyDiscount = async () => {
+    setDiscountError('');
+    setDiscountSuccess('');
+
+    if (!discountCode) {
+      setDiscountError('کد تخفیف را وارد کنید');
+      return;
     }
-  };
-
-  const paymentMethods = getPaymentMethods();
-
-  const formatPrice = (rialPrice) => {
-    if (selectedLocation === 'iran') {
-      return `${rialPrice.toLocaleString('fa-IR')} تومان`;
-    }
-    return `$${rialPrice}`;
-  };
-
-  const handleInputChange = (field, value) => {
-    setPaymentData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-    // ✅ اگر فیلد مربوط به نام باشد، داخل سرویس ذخیره کن
-    // if (field === 'firstName' || field === 'lastName') {
-    //   serviceDetails[selectedService][field] = value;
-    // }
-  };
-
-  const handlePayment = async () => {
-    setIsProcessing(true);
-    // console.log('Processing payment with data:', service);
-
-    // ✅ Attach the user’s name to service before completing
-    // service.firstName = paymentData.firstName;
-    // service.lastName = paymentData.lastName;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      onComplete({
-        transactionId: 'TXN_' + Date.now(),
-        amount: paymentData.price,
-        method: paymentMethod,
-        status: 'completed',
-        amountRial: paymentData.priceRial,
-        firstName: paymentData.firstName,
-        lastName: paymentData.lastName,
-        contactInfo: paymentData.phone || paymentData.email,
+      const res = await api.post('/api/discount/validate', {
+        code: discountCode,
+        productType: selectedServiceName.code,
+        baseAmount: basePrice,
       });
-    } catch (error) {
-      console.error('Payment failed:', error);
+
+      const data = res.data;
+
+      if (!data.valid) {
+        setDiscountPercent(0);
+        setFinalPrice(basePrice);
+        setDiscountError('کد تخفیف معتبر نیست');
+        return;
+      }
+
+      // Apply backend values
+      setDiscountPercent(data.discount.value);
+      setFinalPrice(data.finalPrice);
+      setDiscountSuccess(`${data.discount.value}% تخفیف اعمال شد`);
+    } catch (err) {
+      setDiscountError('کد تخفیف معتبر نیست');
+    }
+  };
+
+  // ----------------------
+  // PAYMENT FINALIZE
+  // ----------------------
+  const handlePayment = async () => {
+    try {
+      setIsProcessing(true);
+
+      const result = await onComplete({
+        amountRial: selectedLocation === 'iran' ? finalPrice : null,
+        amountUSD: selectedLocation !== 'iran' ? finalPrice : null,
+        method: paymentMethod,
+        discountCode,
+        discountPercent,
+      });
+
+      console.log('Payment complete:', result);
+
+      if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleTrialStart = () => {
-    onSkipTrial({
-      trialId: 'TRIAL_' + Date.now(),
-      service: selectedService,
-      trialDays: 3,
-      status: 'trial_active',
-    });
-  };
-
   useEffect(() => {
-    if (selectedLocation === 'iran') {
-      setPaymentMethod('shaparak');
-    } else {
-      setPaymentMethod('stripe');
-    }
-  }, []);
-
-  console.log(
-    'Payment data:',
-    selectedService,
-    selectedLocation,
-    selectedServicePrice,
-    selectedServiceName,
-    selectedServiceRialPrice,
-    contactInfo
-  );
+    setPaymentMethod(selectedLocation === 'iran' ? 'shaparak' : 'stripe');
+  }, [selectedLocation]);
 
   return (
     <div className="p-6 space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon name="CreditCard" size={32} className="text-success" />
-        </div>
-        <h2 className="text-2xl font-semibold text-foreground mb-2">پرداخت</h2>
-        <p className="text-muted-foreground">
-          {selectedServiceName.displayName}
+      <h2 className="text-xl font-semibold text-center">پرداخت</h2>
+
+      {/* ---- PRICE BOX ---- */}
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <p className="text-sm">قیمت:</p>
+        <p className="text-2xl font-bold text-foreground">
+          {selectedLocation === 'iran'
+            ? `${finalPrice?.toLocaleString('fa-IR')} تومان`
+            : `$${finalPrice}`}
         </p>
-      </div>
 
-      {/* Service Summary */}
-      <div className="bg-muted/50 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-right">
-            <div className="flex items-center space-x-2">
-              {/* {selectedLocation === 'iran' ? (
-                <span className="text-xl font-bold text-foreground">
-                  {`${service.priceRial.toLocaleString('fa-IR')} تومان`}
-                </span>
-              ) : (
-                <span className="text-xl font-bold text-foreground">
-                  {service.price.price}
-                </span>
-              )} */}
-            </div>
-            <span className="text-xs text-muted-foreground"></span>
-          </div>
-        </div>
-      </div>
-
-      {/* Trial Option */}
-
-      {/* Payment Method Selection */}
-      <div className="space-y-4">
-        <Select
-          label="درگاه پرداخت"
-          options={paymentMethods}
-          value={paymentMethod}
-          onChange={setPaymentMethod}
-          placeholder="انتخاب روش پرداخت"
-          required
-        />
-
-        {/* Payment Form */}
-        {paymentMethod && (
-          <div className="space-y-4 p-4 bg-card border border-border rounded-lg">
-            {selectedLocation === 'international' &&
-              paymentMethod === 'stripe' && (
-                <div className="flex justify-center">
-                  <script
-                    async
-                    src="https://js.stripe.com/v3/buy-button.js"></script>
-
-                  <stripe-buy-button
-                    buy-button-id="buy_btn_1SM1OxLvdXYGADCcLewgqzDT"
-                    publishable-key="pk_live_51O9uPPLvdXYGADCcTWSsikqwZStf2uKsh11X9PYtmmav0hRwbmHeOy24I9RUpHzNqLXPGk5rJnHXHmai0ypbuCiU00lXfhDJxb"></stripe-buy-button>
-                </div>
-              )}
-
-            {selectedLocation === 'iran' && (
-              <div dir="rtl">
-                <Input
-                  label="نام"
-                  type="text"
-                  placeholder=""
-                  value={paymentData.firstName}
-                  onChange={(e) =>
-                    handleInputChange('firstName', e.target.value)
-                  }
-                  required
-                />
-                <Input
-                  label="نام خانوادگی"
-                  type="text"
-                  placeholder=""
-                  value={paymentData.lastName}
-                  onChange={(e) =>
-                    handleInputChange('lastName', e.target.value)
-                  }
-                  required
-                />
-                <Input
-                  label="شماره موبایل / ایمیل"
-                  type="text"
-                  disabled
-                  placeholder="09123456789"
-                  value={paymentData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  //  required
-                />
-                <div dir="rtl" className="p-3 bg-success/10 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="Shield" size={16} className="text-success" />
-                    <p className="text-sm text-success font-medium p-2">
-                      برای پرداخت به درگاه مورد تایید بانک مرکزی منتقل خواهید
-                      شد.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex space-x-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={onBack}
-                    disabled={isProcessing}
-                    className="flex-1">
-                    بازگشت
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={handlePayment}
-                    disabled={
-                      !paymentMethod ||
-                      isProcessing ||
-                      paymentData.firstName == '' ||
-                      paymentData.lastName == ''
-                    }
-                    loading={isProcessing}
-                    className="flex-1">
-                    {isProcessing
-                      ? 'در حال انجام...'
-                      : `پرداخت ${selectedServiceRialPrice.dispayDiscound}`}
-                  </Button>
-                </div>
-                <div dir="rtl" className="alert alert-info mt-4">
-                  <span className="text-white">
-                    قبل از فشردن دکمه پرداخت، حتما فیلترشکن خود را خاموش کنید
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+        {discountPercent > 0 && (
+          <p className="text-green-600 text-sm mt-1">
+            {discountPercent}% تخفیف اعمال شد
+          </p>
         )}
       </div>
+
+      {/* ---- DISCOUNT ---- */}
+      <div className="space-y-2">
+        <Input
+          label="کد تخفیف"
+          value={discountCode}
+          onChange={(e) => setDiscountCode(e.target.value)}
+        />
+        <Button variant="outline" onClick={handleApplyDiscount}>
+          اعمال کد تخفیف
+        </Button>
+
+        {discountError && (
+          <p className="text-red-500 text-xs">{discountError}</p>
+        )}
+        {discountSuccess && (
+          <p className="text-green-500 text-xs">{discountSuccess}</p>
+        )}
+      </div>
+
+      {/* ---- PAYMENT METHOD ---- */}
+      <Select
+        label="روش پرداخت"
+        options={
+          selectedLocation === 'iran'
+            ? [{ value: 'shaparak', label: 'پرداخت شاپرک' }]
+            : [{ value: 'stripe', label: 'Credit Card (Stripe)' }]
+        }
+        value={paymentMethod}
+        onChange={setPaymentMethod}
+      />
+
+      <Button
+        variant="default"
+        onClick={handlePayment}
+        loading={isProcessing}
+        disabled={!paymentMethod}>
+        ادامه پرداخت
+      </Button>
+
+      <Button variant="outline" onClick={onBack}>
+        بازگشت
+      </Button>
     </div>
   );
 };

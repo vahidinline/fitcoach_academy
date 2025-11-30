@@ -34,9 +34,7 @@ const PaymentResult = () => {
             <h1 className="text-2xl font-bold mt-4">
               پرداخت با موفقیت انجام شد
             </h1>
-            <p className="text-gray-300 mt-2">
-              اشتراک شما فعال شد. از خدمات ما لذت ببرید 🌟
-            </p>
+            <p className="text-gray-300 mt-2">اشتراک شما فعال شد.</p>
 
             <button
               onClick={() => navigate('/login')}
@@ -53,7 +51,7 @@ const PaymentResult = () => {
             </p>
 
             <button
-              onClick={() => navigate('/buy')}
+              onClick={() => navigate('/register')}
               className="mt-6 w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 transition text-lg font-bold">
               تلاش دوباره
             </button>

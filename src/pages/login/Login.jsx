@@ -116,11 +116,11 @@ const Login = () => {
           {!showOtpInput ? (
             <>
               {/* name of each tab group should be unique */}
-              <div className="tabs tabs-border">
+              <div className="tabs tabs-border gap-2">
                 <input
                   type="radio"
                   name="my_tabs_2"
-                  className="tab"
+                  className="tab text-xs"
                   aria-label="ورود با ایمیل"
                 />
                 <div className="tab-content border-base-300 bg-base-100 p-10">
@@ -135,7 +135,7 @@ const Login = () => {
                 <input
                   type="radio"
                   name="my_tabs_2"
-                  className="tab"
+                  className="tab text-xs"
                   aria-label="ورود با موبایل"
                   defaultChecked
                 />
