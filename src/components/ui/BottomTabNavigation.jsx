@@ -43,13 +43,13 @@ const BottomTabNavigation = () => {
       badge: null,
       status: 'deActivated',
     },
-    // {
-    //   id: 'payment',
-    //   label: 'پرداخت',
-    //   path: '/payment-processing',
-    //   icon: 'CreditCard',
-    //   badge: null,
-    // },
+    {
+      id: 'payment',
+      label: 'سوابق پرداخت',
+      path: '/payment-history',
+      icon: 'CreditCard',
+      badge: null,
+    },
     {
       id: 'certificate',
       label: 'سرتیفیکیت',
@@ -140,20 +140,6 @@ const BottomTabNavigation = () => {
       <div className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-card border-r border-border z-100">
         <div className="flex flex-col h-full">
           {/* Logo Section */}
-          <div className="p-6 border-b border-border">
-            <div className="flex items-center space-x-3">
-              {/* <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Icon
-                  name="Dumbbell"
-                  size={20}
-                  className="text-primary-foreground"
-                />
-              </div> */}
-              <span className="text-xl font-semibold text-foreground">
-                آکادمی آذر شفیعی
-              </span>
-            </div>
-          </div>
 
           {/* Navigation Items */}
           <nav className="flex-1 p-4">

@@ -16,6 +16,8 @@ import CallbackRial from 'pages/Callback';
 import LoginIndex from 'pages/login';
 import CertificateIndex from 'pages/Certificate';
 import Quiz from 'pages/Quiz';
+import PaymentResult from 'pages/payment-processing/components/PaymentResult';
+import PaymentHistory from 'components/PaymentHistory';
 
 const Routes = () => {
   return (
@@ -31,6 +33,8 @@ const Routes = () => {
             <Route path="/login" element={<LoginIndex />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
             <Route path="/register" element={<RegistrationStepper />} />
+            <Route path="//payment/result" element={<PaymentResult />} />
+
             <Route
               path="/progress-report-submission"
               element={<ProgressReportSubmission />}
@@ -50,6 +54,7 @@ const Routes = () => {
               element={<CertificateIndex />}
             />
             <Route path="/payment-processing" element={<PaymentProcessing />} />
+            <Route path="/payment-history" element={<PaymentHistory />} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
         </AuthenticationGuard>

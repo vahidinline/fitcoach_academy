@@ -138,7 +138,7 @@ const UserStatusCard = ({ userId }) => {
     <div
       ref={cardRef}
       className="
-    bg-gradient-to-r from-blue-100  to-white-400 opacity-40
+    bg-blue-100
     rounded-2xl
     p-6
     border border-white/60

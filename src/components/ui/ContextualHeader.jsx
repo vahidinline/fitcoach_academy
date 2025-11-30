@@ -127,9 +127,8 @@ const ContextualHeader = () => {
 
           {config.showLogo && (
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"></div>
               <span className="text-lg font-semibold text-foreground hidden sm:block">
-                آذی‌شفیعی
+                پنل دوره
               </span>
             </div>
           )}
