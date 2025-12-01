@@ -59,7 +59,7 @@ const BottomTabNavigation = () => {
       path: '/progress-report-submission',
       icon: 'TrendingUp',
       badge: null,
-      status: 'deActivated',
+      status: 'activate',
     },
     {
       id: 'payment',
@@ -67,6 +67,8 @@ const BottomTabNavigation = () => {
       path: '/payment-history',
       icon: 'CreditCard',
       badge: null,
+      status: 'active',
+      productType: 'academy',
     },
     {
       id: 'certificate',
@@ -129,7 +131,7 @@ const BottomTabNavigation = () => {
 
       <div className=" lg:hidden fixed bottom-0  right-0 left-0 bg-card border-t border-border z-100 pb-safe">
         <div className="flex items-center justify-around px-4 py-2">
-          {navigationItems.map((item) => {
+          {filteredNavigationItems.map((item) => {
             return (
               <button
                 disabled={item.status === 'deActivated'}

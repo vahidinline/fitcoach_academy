@@ -7,6 +7,7 @@ export default {
     './app/**/*.{js,jsx}',
     './src/**/*.{js,jsx}',
   ],
+
   prefix: '',
   theme: {
     container: {

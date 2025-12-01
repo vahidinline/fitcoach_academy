@@ -1,136 +1,88 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Icon from '../AppIcon';
-import { Bell } from 'lucide-react';
+import { Bell, LogOut, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNotifications } from 'context/NotificationContext';
 import NotificationsPanel from 'components/NotificationsPanel';
 
 const ContextualHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [accountDetails, setAccountDetails] = useState(false);
-  const [user, setUser] = useState('');
   const { unreadCount } = useNotifications();
-  const [open, setOpen] = useState(false);
-
-  const getHeaderConfig = () => {
-    const path = location.pathname;
-
-    switch (path) {
-      case '/login':
-        return {
-          type: 'minimal',
-          showLogo: true,
-          showBack: false,
-          title: null,
-          showActions: false,
-        };
-      case '/registration-stepper':
-        return {
-          type: 'registration',
-          showLogo: true,
-          showBack: true,
-          title: 'Create Account',
-          showActions: false,
-        };
-      case '/user-dashboard':
-        return {
-          type: 'dashboard',
-          showLogo: false,
-          showBack: false,
-          title: 'پنل کاربری',
-          showActions: true,
-        };
-      case '/training-video-player':
-        return {
-          type: 'immersive',
-          showLogo: false,
-          showBack: true,
-          title: null,
-          showActions: false,
-        };
-      case '/progress-report-submission':
-        return {
-          type: 'functional',
-          showLogo: false,
-          showBack: true,
-          title: 'گزارش پیشرفت',
-          showActions: false,
-        };
-      case '/payment-processing':
-        return {
-          type: 'secure',
-          showLogo: true,
-          showBack: true,
-          title: 'پرداخت امن',
-          showActions: false,
-        };
-      default:
-        return {
-          type: 'default',
-          showLogo: true,
-          showBack: false,
-          title: null,
-          showActions: true,
-        };
-    }
-  };
-
-  const config = getHeaderConfig();
-
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
-
-  const toggleAccount = () => {
-    setAccountDetails(!accountDetails);
-  };
+  const [openNotifications, setOpenNotifications] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    setUser(JSON.parse(localStorage.getItem('userData')));
+    const u = JSON.parse(localStorage.getItem('userData'));
+    setUser(u);
   }, []);
 
+  /** ---------------- Header Configuration ---------------- */
+  const headerConfig = {
+    '/login': { back: false, title: '', logo: true, actions: false },
+    '/registration-stepper': {
+      back: true,
+      title: 'خرید دوره تناسب اندام',
+      logo: true,
+      actions: false,
+    },
+    '/user-dashboard': {
+      back: false,
+      title: 'پنل کاربری',
+      logo: false,
+      actions: true,
+    },
+    '/training-video-player': {
+      back: true,
+      title: 'جلسات آموزشی',
+      logo: false,
+      actions: false,
+    },
+    '/progress-report-submission': {
+      back: true,
+      title: 'گزارش پیشرفت',
+      logo: false,
+      actions: false,
+    },
+    '/payment-processing': {
+      back: true,
+      title: 'پرداخت امن',
+      logo: true,
+      actions: false,
+    },
+  };
+
+  const config = headerConfig[location.pathname] || {
+    back: false,
+    title: '',
+    logo: true,
+    actions: true,
+  };
+
+  const handleBack = () => navigate(-1);
+
+  const handleLogout = () => {
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    navigate('/');
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-200 lg:left-64">
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-        {/* Left Section */}
-        <div className="relative">
-          {/* Bell Icon */}
-          <button
-            onClick={() => setOpen(true)}
-            className="relative p-1 focus:outline-none">
-            <Bell size={26} className="text-gray-800" />
-
-            {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          {/* Panel */}
-          {open && <NotificationsPanel onClose={() => setOpen(false)} />}
-        </div>
-        <div className="flex items-center space-x-4">
-          {config.showBack && (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-16 flex items-center px-4 lg:px-6">
+      <div className="flex w-full items-center justify-between" dir="rtl">
+        {/* ---------- Right Section (Back + Title) ---------- */}
+        <div className="flex items-center gap-3">
+          {config.back && (
             <button
               onClick={handleBack}
-              className="p-2 -ml-2 rounded-lg hover:bg-muted animate-spring lg:hidden">
-              <Icon name="ArrowLeft" size={20} className="text-foreground" />
+              className="p-2 rounded-lg hover:bg-muted transition lg:hidden">
+              <ArrowLeft size={22} className="text-foreground" />
             </button>
           )}
 
-          {config.showLogo && (
-            <div className="flex items-center space-x-3">
-              <span className="text-lg font-semibold text-foreground hidden sm:block">
-                پنل دوره
-              </span>
-            </div>
+          {config.logo && (
+            <span className="font-semibold text-lg text-foreground hidden sm:block">
+              پنل دوره
+            </span>
           )}
 
           {config.title && (
@@ -140,16 +92,36 @@ const ContextualHeader = () => {
           )}
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center space-x-2"></div>
+        {/* ---------- Center Placeholder (optional) ---------- */}
+        <div className="flex-1 hidden lg:block"></div>
+
+        {/* ---------- Left Section (Notifications + Logout) ---------- */}
+        <div className="flex items-center gap-3">
+          {/* Notif Button */}
+          <button
+            onClick={() => setOpenNotifications(true)}
+            className="relative p-2 rounded-lg hover:bg-muted transition">
+            <Bell size={24} className="text-gray-800" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 bg-muted px-3 py-2 rounded-lg hover:bg-muted/70 transition">
+            <LogOut size={20} className="text-gray-800" />
+            <span className="hidden sm:block text-sm text-gray-800">خروج</span>
+          </button>
+        </div>
       </div>
 
-      {/* Click outside to close notifications */}
-      {showNotifications && (
-        <div
-          className="fixed inset-0 z-200"
-          onClick={() => setShowNotifications(false)}
-        />
+      {/* Notifications Panel */}
+      {openNotifications && (
+        <NotificationsPanel onClose={() => setOpenNotifications(false)} />
       )}
     </header>
   );

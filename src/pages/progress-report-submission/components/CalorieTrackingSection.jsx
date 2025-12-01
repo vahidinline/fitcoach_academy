@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
@@ -17,7 +17,8 @@ const CalorieTrackingSection = () => {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [createdReport, setCreatedReport] = useState(null);
-
+  const [subscription, setSubscription] = useState(null);
+  const [remaining, setRemaining] = useState(null);
   const [periodType, setPeriodType] = useState('weekly');
 
   const [fields, setFields] = useState({
@@ -107,10 +108,43 @@ const CalorieTrackingSection = () => {
     setSubmitting(false);
   };
 
+  const loadSubscription = async () => {
+    try {
+      const res = await api.get(`/api/subscription/active/${userId}`);
+      const sub = res.data.subscription;
+
+      if (!sub) {
+        setSubscription(null);
+        return;
+      }
+
+      const remainingReports = sub.reportLimit - sub.reportsUsed;
+
+      setSubscription({
+        type: sub.productType,
+        start: sub.startsAt,
+        end: sub.expiresAt,
+        limit: sub.reportLimit,
+        used: sub.reportsUsed,
+        remaining: remainingReports,
+        unlimitedTime: sub.expiresAt === null,
+      });
+
+      setRemaining(remainingReports);
+    } catch (err) {
+      console.error('Subscription error:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadSubscription();
+  }, []);
+
   return (
     <div>
       <ReportQuota
-        userId={userId}
+        subscription={subscription}
+        remaining={remaining}
         onBuyClick={() => {
           // نمایش صفحه خرید، یا باز کردن modal
           console.log('User wants to buy more reports!');
@@ -119,27 +153,31 @@ const CalorieTrackingSection = () => {
       <form onSubmit={submitReport} className="space-y-5 p-4">
         {/* PERIOD TOGGLE */}
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPeriodType('weekly')}
-            className={`flex-1 py-2 rounded-xl transition ${
-              periodType === 'weekly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}>
-            ۷ روز اخیر
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setPeriodType('monthly')}
-            className={`flex-1 py-2 rounded-xl transition ${
-              periodType === 'monthly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}>
-            ۳۰ روز اخیر
-          </button>
+          {subscription?.type === 'pro' ? (
+            <button
+              disabled
+              type="button"
+              onClick={() => setPeriodType('weekly')}
+              className={`flex-1 py-2 rounded-xl transition ${
+                periodType === 'weekly'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700'
+              }`}>
+              ۷ روز اخیر
+            </button>
+          ) : (
+            <button
+              disabled
+              type="button"
+              onClick={() => setPeriodType('monthly')}
+              className={`flex-1 py-2 rounded-xl transition ${
+                periodType === 'monthly'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700'
+              }`}>
+              ۳۰ روز اخیر
+            </button>
+          )}
         </div>
 
         {/* CALORIES */}
@@ -175,7 +213,7 @@ const CalorieTrackingSection = () => {
           </div>
 
           <div>
-            <label>کربوهیدرات (%)</label>
+            <label>کرب (%)</label>
             <select
               className="input-box"
               value={fields.carbsPercent}

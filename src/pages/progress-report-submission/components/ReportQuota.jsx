@@ -2,42 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import api from 'api/api';
 import { gsap } from 'gsap';
 
-const ReportQuota = ({ userId, onBuyClick }) => {
-  const [subscription, setSubscription] = useState(null);
-  const [remaining, setRemaining] = useState(null);
+const ReportQuota = ({ subscription, remaining, onBuyClick }) => {
+  // const [subscription, setSubscription] = useState(null);
+  // const [remaining, setRemaining] = useState(null);
   const progressRef = useRef(null);
-
-  const loadSubscription = async () => {
-    try {
-      const res = await api.get(`/api/subscription/active/${userId}`);
-      const sub = res.data.subscription;
-
-      if (!sub) {
-        setSubscription(null);
-        return;
-      }
-
-      const remainingReports = sub.reportLimit - sub.reportsUsed;
-
-      setSubscription({
-        type: sub.productType,
-        start: sub.startsAt,
-        end: sub.expiresAt,
-        limit: sub.reportLimit,
-        used: sub.reportsUsed,
-        remaining: remainingReports,
-        unlimitedTime: sub.expiresAt === null,
-      });
-
-      setRemaining(remainingReports);
-    } catch (err) {
-      console.error('Subscription error:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadSubscription();
-  }, []);
 
   // Animate progress bar
   useEffect(() => {

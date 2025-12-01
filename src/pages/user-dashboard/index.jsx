@@ -3,15 +3,9 @@ import { useAuth } from '../../components/ui/AuthenticationGuard';
 import ContextualHeader from '../../components/ui/ContextualHeader';
 import BottomTabNavigation from '../../components/ui/BottomTabNavigation';
 import UserStatusCard from './components/UserStatusCard';
-import StatsCards from './components/StatsCards';
 import TrainingVideoGrid from './components/TrainingVideoGrid';
-import ProgressSection from './components/ProgressSection';
-import QuickActions from './components/QuickActions';
-import UpcomingSchedule from './components/UpcomingSchedule';
-import FloatingActionButton from './components/FloatingActionButton';
 import { t } from '../../utils/translations';
 import SubscriptionStatus from 'components/SubscriptionStatus';
-import NotificationBell from 'components/notifications/NotificationBell';
 
 const UserDashboard = () => {
   const { user } = useAuth();

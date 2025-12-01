@@ -121,21 +121,6 @@ const Login = () => {
                   type="radio"
                   name="my_tabs_2"
                   className="tab text-xs"
-                  aria-label="ورود با ایمیل"
-                />
-                <div className="tab-content border-base-300 bg-base-100 p-10">
-                  {' '}
-                  <InternationalAuthForm
-                    onSubmit={handleAuthSubmit}
-                    isLoading={isLoading}
-                    error={error}
-                  />
-                </div>
-
-                <input
-                  type="radio"
-                  name="my_tabs_2"
-                  className="tab text-xs"
                   aria-label="ورود با موبایل"
                   defaultChecked
                 />
@@ -147,26 +132,72 @@ const Login = () => {
                     error={error}
                   />
                 </div>
+
+                <input
+                  type="radio"
+                  name="my_tabs_2"
+                  className="tab text-xs"
+                  aria-label="ورود با ایمیل"
+                />
+                <div className="tab-content border-base-300 bg-base-100 p-10">
+                  {' '}
+                  <InternationalAuthForm
+                    onSubmit={handleAuthSubmit}
+                    isLoading={isLoading}
+                    error={error}
+                  />
+                </div>
               </div>
             </>
           ) : (
-            <div className="bg-card rounded-lg shadow-elevation-1 p-6 border border-border">
-              <h2 className="text-xl font-bold mb-4">کد تایید را وارد کنید</h2>
+            <div
+              className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-8
+                 max-w-sm mx-auto animate-fade-in">
+              <h2 className="text-2xl font-bold text-gray-500 mb-6 text-center">
+                کد تایید را وارد کنید
+              </h2>
+
               <input
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full p-2 border rounded mb-4"
+                className="w-full p-3 rounded-xl bg-white/20 border border-gray-400 text-gray-500 placeholder-white/70
+               focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white/30 transition-all"
                 placeholder="کد تایید"
               />
-              {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
+              {error && (
+                <p className="text-red-300 text-sm mt-2 mb-4 text-center">
+                  {error}
+                </p>
+              )}
+
               <button
                 onClick={handleOtpSubmit}
                 disabled={isLoading}
-                className="w-full bg-primary text-white py-2 rounded">
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl mt-4
+               transition-all font-semibold disabled:opacity-50 shadow-lg shadow-primary/40">
                 {isLoading ? 'در حال تایید...' : 'تایید'}
               </button>
             </div>
+
+            // <div className="bg-card rounded-lg shadow-elevation-1 p-6 border border-border">
+            //   <h2 className="text-xl font-bold mb-4">کد تایید را وارد کنید</h2>
+            //   <input
+            //     type="text"
+            //     value={otp}
+            //     onChange={(e) => setOtp(e.target.value)}
+            //     className="w-full p-2 border rounded mb-4"
+            //     placeholder="کد تایید"
+            //   />
+            //   {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            //   <button
+            //     onClick={handleOtpSubmit}
+            //     disabled={isLoading}
+            //     className="w-full bg-primary text-white py-2 rounded">
+            //     {isLoading ? 'در حال تایید...' : 'تایید'}
+            //   </button>
+            // </div>
           )}
         </div>
       </main>
