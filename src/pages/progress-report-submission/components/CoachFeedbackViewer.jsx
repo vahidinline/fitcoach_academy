@@ -23,6 +23,19 @@ export default function CoachFeedbackViewer({ userId }) {
 
   if (loading) return <p>در حال بارگذاری...</p>;
 
+  function convertFieldLabel(key) {
+    const map = {
+      dailyCalories: 'کالری روزانه',
+      proteinPercent: 'پروتئین (%)',
+      carbsPercent: 'کربوهیدرات (%)',
+      fatPercent: 'چربی (%)',
+      fiberTarget: 'فیبر روزانه (گرم)',
+      dailyStepsTarget: 'هدف قدم روزانه',
+      trainingDaysTarget: 'روزهای تمرین',
+    };
+    return map[key] || key;
+  }
+
   // ---------------------------
   //  حالت 1: بدون گزارش → هیچ UI دیگری نده
   // ---------------------------

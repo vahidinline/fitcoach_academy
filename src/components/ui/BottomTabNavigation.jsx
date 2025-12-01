@@ -3,13 +3,30 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import { useNotifications } from 'context/NotificationContext';
 import { Bell } from 'lucide-react';
+import api from 'api/api';
 
 const BottomTabNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('');
   const { unreadCount } = useNotifications();
+  const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
+  const [productType, setProductType] = useState('');
+  const getUserProduct = async () => {
+    try {
+      const res = await api.get(`/api/subscription/active/${userId}`);
+      console.log('user profile in sidebar', res.data.subscription.productType);
+      if (res) {
+        setProductType(res.data.subscription.productType);
+      } else setProductType('');
+    } catch {
+      setProductType('');
+    }
+  };
 
+  useEffect(() => {
+    getUserProduct();
+  }, []);
   const navigationItems = [
     {
       id: 'dashboard',
@@ -26,6 +43,7 @@ const BottomTabNavigation = () => {
       icon: 'Play',
       badge: null,
       status: 'active',
+      productType: 'academy',
     },
     {
       id: 'basic-data',
@@ -67,6 +85,14 @@ const BottomTabNavigation = () => {
     },
   ];
 
+  const filteredNavigationItems = navigationItems.filter((item) => {
+    // اگر آیتم productType نداشت = همیشه نمایش داده شود
+    if (!item.productType) return true;
+
+    // اگر آیتم productType داشت = فقط وقتی نمایش داده شود که با محصول کاربر یکی باشد
+    return item.productType === productType;
+  });
+
   const handleLogout = () => {
     localStorage.removeItem('userData');
     localStorage.removeItem('authToken');
@@ -103,36 +129,38 @@ const BottomTabNavigation = () => {
 
       <div className=" lg:hidden fixed bottom-0  right-0 left-0 bg-card border-t border-border z-100 pb-safe">
         <div className="flex items-center justify-around px-4 py-2">
-          {navigationItems.map((item) => (
-            <button
-              disabled={item.status === 'deActivated'}
-              key={item.id}
-              onClick={() => handleTabClick(item)}
-              className={`flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 animate-spring ${
-                activeTab === item.id
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              style={{ minHeight: '48px' }}>
-              <div className="relative mb-1">
-                <Icon
-                  name={item.icon}
-                  size={20}
-                  className={
-                    activeTab === item.id ? 'text-primary' : 'text-current'
-                  }
-                />
-                {item.badge && (
-                  <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs font-medium truncate max-w-full">
-                {item.label}
-              </span>
-            </button>
-          ))}
+          {navigationItems.map((item) => {
+            return (
+              <button
+                disabled={item.status === 'deActivated'}
+                key={item.id}
+                onClick={() => handleTabClick(item)}
+                className={`flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 animate-spring ${
+                  activeTab === item.id
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ minHeight: '48px' }}>
+                <div className="relative mb-1">
+                  <Icon
+                    name={item.icon}
+                    size={20}
+                    className={
+                      activeTab === item.id ? 'text-primary' : 'text-current'
+                    }
+                  />
+                  {item.badge && (
+                    <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-medium truncate max-w-full">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -144,7 +172,7 @@ const BottomTabNavigation = () => {
           {/* Navigation Items */}
           <nav className="flex-1 p-4">
             <div className="space-y-2">
-              {navigationItems.map((item) => (
+              {filteredNavigationItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleTabClick(item)}
