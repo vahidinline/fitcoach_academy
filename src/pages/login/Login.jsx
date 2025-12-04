@@ -16,6 +16,8 @@ const Login = () => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState('');
   const [pendingUser, setPendingUser] = useState(null); // store data for OTP verify
+  const [loginMethod, setLoginMethod] = useState(null); // 'mobile' | 'email'
+
   console.log('pendingUser', pendingUser);
   useEffect(() => {
     const handleLanguageChange = (event) => {
@@ -37,7 +39,8 @@ const Login = () => {
     console.log('authData', authData);
     setIsLoading(true);
     setError('');
-
+    if (authData.phoneNumber) setLoginMethod('mobile');
+    if (authData.email) setLoginMethod('email');
     try {
       // Send request to backend to initiate OTP
       const response = await fetch(
@@ -155,6 +158,16 @@ const Login = () => {
                  max-w-sm mx-auto animate-fade-in">
               <h2 className="text-2xl font-bold text-gray-500 mb-6 text-center">
                 کد تایید را وارد کنید
+                <span className=" p-1 m-3">
+                  {loginMethod === 'mobile' && (
+                    <p className="text-xs">
+                      کد تایید به شماره موبایل شما ارسال شد.
+                    </p>
+                  )}
+                  {loginMethod === 'email' && (
+                    <p className="text-xs">کد تایید به ایمیل شما ارسال شد.</p>
+                  )}
+                </span>
               </h2>
 
               <input

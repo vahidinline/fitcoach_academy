@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
+import { canSubmitToday } from 'utils/canSubmitReport';
 
 const generateOptions = (step = 5) => {
   const arr = [];
@@ -33,6 +34,20 @@ const CalorieTrackingSection = () => {
   });
 
   const macroOptions = generateOptions(5);
+  const allowed = canSubmitToday();
+
+  if (!allowed) {
+    return (
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-bold text-red-600 mb-2">
+          ⛔ امکان ارسال گزارش امروز فعال نیست
+        </h2>
+        <p className="text-gray-700">
+          شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
+        </p>
+      </div>
+    );
+  }
 
   const computePeriod = () => {
     const end = new Date();
@@ -110,7 +125,7 @@ const CalorieTrackingSection = () => {
 
   const loadSubscription = async () => {
     try {
-      const res = await api.get(`/api/subscription/active/${userId}`);
+      const res = await api.get(`/subscription/active/${userId}`);
       const sub = res.data.subscription;
 
       if (!sub) {
@@ -150,6 +165,35 @@ const CalorieTrackingSection = () => {
           console.log('User wants to buy more reports!');
         }}
       />
+      {/* نمایش دکمه‌ها فقط در 1 ساعت اول */}
+      {Date.now() < new Date(createdReport.editableUntil).getTime() ? (
+        <>
+          <p className="text-xs text-green-600">
+            ⏳ می‌توانید تا یک ساعت این گزارش را ویرایش یا حذف کنید.
+          </p>
+
+          <button
+            onClick={() => console.log('edit')}
+            className="w-full bg-yellow-500 text-white p-2 rounded-xl">
+            ویرایش گزارش
+          </button>
+
+          <button
+            onClick={async () => {
+              if (!confirm('گزارش حذف شود؟')) return;
+              await api.delete(`/report/${createdReport._id}`);
+              setCreatedReport(null);
+              setSuccessMessage('گزارش حذف شد.');
+            }}
+            className="w-full bg-red-500 text-white p-2 rounded-xl">
+            حذف گزارش
+          </button>
+        </>
+      ) : (
+        <p className="text-xs text-gray-500">
+          ⛔ زمان ویرایش این گزارش تمام شده است
+        </p>
+      )}
       <form onSubmit={submitReport} className="space-y-5 p-4">
         {/* PERIOD TOGGLE */}
         <div className="flex gap-2">

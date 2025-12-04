@@ -14,7 +14,7 @@ const SubscriptionStatus = ({ userId }) => {
   // ========================= LOAD DATA =========================
   const load = async () => {
     try {
-      const res = await api.get(`/api/subscription/active/${userId}`);
+      const res = await api.get(`/subscription/active/${userId}`);
       setSub(res.data.subscription || null);
     } catch (e) {
       setSub(null);

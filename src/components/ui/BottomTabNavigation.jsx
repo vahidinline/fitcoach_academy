@@ -14,7 +14,7 @@ const BottomTabNavigation = () => {
   const [productType, setProductType] = useState('');
   const getUserProduct = async () => {
     try {
-      const res = await api.get(`/api/subscription/active/${userId}`);
+      const res = await api.get(`/subscription/active/${userId}`);
       console.log('user profile in sidebar', res.data.subscription.productType);
       if (res) {
         setProductType(res.data.subscription.productType);

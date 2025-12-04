@@ -24,6 +24,7 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
   const upload = async (file) => {
     const tempId = Date.now() + Math.random();
 
+    // ابتدا فایل را به صورت موقت اضافه می‌کنیم
     setFiles((prev) => [
       ...prev,
       {
@@ -53,21 +54,21 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
 
       clearInterval(interval);
 
-      setProgress((p) => ({ ...p, [tempId]: 100 }));
-
       const url = res.data.url;
 
-      setFiles((prev) =>
-        prev.map((f) => (f.id === tempId ? { ...f, status: 'done', url } : f))
-      );
-
-      // return URLs upward
-      onChange &&
-        onChange(
-          [...files, { id: tempId, url }]
-            .filter((x) => x.status !== 'uploading')
-            .map((x) => x.url)
+      // 🔥 مهم: اینجا باید از callback استفاده کنیم تا state همیشه جدید باشد
+      setFiles((prev) => {
+        const updated = prev.map((f) =>
+          f.id === tempId ? { ...f, url, status: 'done' } : f
         );
+
+        // ارسال لیست URL ها
+        onChange && onChange(updated.filter((f) => f.url).map((f) => f.url));
+
+        return updated;
+      });
+
+      setProgress((p) => ({ ...p, [tempId]: 100 }));
     } catch (err) {
       clearInterval(interval);
       console.error('Upload failed', err);
@@ -77,6 +78,63 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
       );
     }
   };
+
+  // const upload = async (file) => {
+  //   const tempId = Date.now() + Math.random();
+
+  //   setFiles((prev) => [
+  //     ...prev,
+  //     {
+  //       id: tempId,
+  //       preview: URL.createObjectURL(file),
+  //       url: null,
+  //       status: 'uploading',
+  //     },
+  //   ]);
+
+  //   setProgress((p) => ({ ...p, [tempId]: 0 }));
+
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+
+  //   const interval = setInterval(() => {
+  //     setProgress((p) => ({
+  //       ...p,
+  //       [tempId]: Math.min((p[tempId] || 0) + 10, 90),
+  //     }));
+  //   }, 200);
+
+  //   try {
+  //     const res = await api.post('/report/upload-image', formData, {
+  //       headers: { 'Content-Type': 'multipart/form-data' },
+  //     });
+
+  //     clearInterval(interval);
+
+  //     setProgress((p) => ({ ...p, [tempId]: 100 }));
+
+  //     const url = res.data.url;
+
+  //     setFiles((prev) =>
+  //       prev.map((f) => (f.id === tempId ? { ...f, status: 'done', url } : f))
+  //     );
+
+  //     // return URLs upward
+  //     onChange &&
+  //       onChange(
+  //         [...files, { id: tempId, url }]
+  //           .filter((x) => x.status !== 'uploading')
+  //           .map((x) => x.url)
+  //       );
+  //   } catch (err) {
+  //     clearInterval(interval);
+  //     console.error('Upload failed', err);
+
+  //     setFiles((prev) =>
+  //       prev.map((f) => (f.id === tempId ? { ...f, status: 'failed' } : f))
+  //     );
+  //   }
+  // };
 
   const remove = (id) => {
     const newList = files.filter((f) => f.id !== id);

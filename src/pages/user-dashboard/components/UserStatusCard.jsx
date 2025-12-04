@@ -40,7 +40,7 @@ const UserStatusCard = ({ userId }) => {
       try {
         const [client, sub, assess, weight] = await Promise.allSettled([
           api.get(`/api/client/${userId}`),
-          api.get(`/api/subscription/active/${userId}`),
+          api.get(`/subscription/active/${userId}`),
           api.get(`/ShapeUpAssessment/${userId}`),
           api.get(`/report/weight/${userId}`),
         ]);
