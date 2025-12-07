@@ -5,6 +5,7 @@ import BottomTabNavigation from 'components/ui/BottomTabNavigation';
 // --- NEW COMPONENTS ---
 import ProfilePage from './Components/ProfilePage';
 import AssessmentWizard from './Components/AssessmentWizard';
+import ContextualHeader from 'components/ui/ContextualHeader';
 
 export default function BasicForm() {
   const storedUserData = (() => {
@@ -54,6 +55,7 @@ export default function BasicForm() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ContextualHeader />
       <div className="max-w-2xl mx-auto pt-20 p-4 bg-white rounded-lg shadow-md font-custom1">
         {/* ---- TABS ---- */}
         <div dir="rtl" className="flex justify-center mb-6 gap-4">
