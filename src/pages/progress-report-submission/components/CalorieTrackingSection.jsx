@@ -3,8 +3,6 @@ import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
 import { canSubmitToday } from 'utils/canSubmitReport';
-import ReportCountdown from 'utils/ReportCountdown';
-import NextReportTimer from 'utils/NextReportTimer';
 import { useNavigate } from 'react-router-dom';
 
 const generateOptions = (step = 5) => {
@@ -61,20 +59,20 @@ const CalorieTrackingSection = () => {
   const macroOptions = generateOptions(5);
   const allowed = canSubmitToday();
 
-  if (!allowed) {
-    return (
-      <div className="p-4 text-center">
-        <h2 className="text-xl font-bold text-red-600 mb-2">
-          ⛔ شما نمیتوانید گزارش ارسال کنید
-        </h2>
-        <p className="text-gray-700">
-          شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
-        </p>
-        {canSubmitToday() && <ReportCountdown />}
-        <NextReportTimer />
-      </div>
-    );
-  }
+  // if (!allowed) {
+  //   return (
+  //     <div className="p-4 text-center">
+  //       <h2 className="text-xl font-bold text-red-600 mb-2">
+  //         ⛔ شما نمیتوانید گزارش ارسال کنید
+  //       </h2>
+  //       <p className="text-gray-700">
+  //         شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
+  //       </p>
+  //       {canSubmitToday() && <ReportCountdown />}
+  //       <NextReportTimer />
+  //     </div>
+  //   );
+  // }
 
   const computePeriod = () => {
     const end = new Date();
@@ -143,6 +141,7 @@ const CalorieTrackingSection = () => {
         note: '',
       });
       setExtraPhotos([]);
+      navigate('/progress-report-submission?tab=notes');
     } catch (err) {
       setSuccessMessage('❌ مشکلی در ارسال گزارش پیش آمد.');
     }
@@ -406,7 +405,7 @@ const CalorieTrackingSection = () => {
             </div>
           )}
 
-          <button
+          {/* <button
             onClick={async () => {
               if (!confirm('گزارش حذف شود؟')) return;
 
@@ -416,7 +415,7 @@ const CalorieTrackingSection = () => {
             }}
             className="mt-3 w-full bg-red-500 text-white p-2 rounded-xl">
             حذف گزارش
-          </button>
+          </button> */}
         </div>
       )}
     </div>

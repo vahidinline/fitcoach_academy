@@ -1,12 +1,16 @@
-// CoachFeedbackViewer.jsx
 import React, { useEffect, useState } from 'react';
 import api from 'api/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function CoachFeedbackViewer({ userId }) {
+  const navigate = useNavigate();
+
+  // ---------------- Hooks (همیشه اجرا می‌شوند) ----------------
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [timeLeft, setTimeLeft] = useState('');
+
+  // ---------------- Load reports ----------------
   useEffect(() => {
     load();
   }, []);
@@ -22,9 +26,45 @@ export default function CoachFeedbackViewer({ userId }) {
     setLoading(false);
   };
 
-  if (loading) return <p>در حال بارگذاری...</p>;
+  // ---------------- Countdown updater ----------------
+  const updateCountdown = () => {
+    if (reports.length === 0) return;
 
-  function convertFieldLabel(key) {
+    const latest = reports[0];
+    if (!latest?.editableUntil) return;
+
+    const end = new Date(latest.editableUntil).getTime();
+    const now = Date.now();
+    const diff = end - now;
+
+    if (diff <= 0) {
+      setTimeLeft('اتمام مهلت');
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (hours > 0) {
+      setTimeLeft(`${hours} ساعت و ${minutes} دقیقه باقی مانده`);
+    } else {
+      setTimeLeft(`${minutes} دقیقه و ${seconds} ثانیه باقی مانده`);
+    }
+  };
+
+  // اجرای تایمر فقط وقتی REPORTS تغییر کند
+  useEffect(() => {
+    if (reports.length === 0) return;
+
+    updateCountdown(); // initial
+
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [reports]);
+
+  // ---------------- Helper ----------------
+  const convertFieldLabel = (key) => {
     const map = {
       dailyCalories: 'کالری روزانه',
       proteinPercent: 'پروتئین (%)',
@@ -35,11 +75,13 @@ export default function CoachFeedbackViewer({ userId }) {
       trainingDaysTarget: 'روزهای تمرین',
     };
     return map[key] || key;
-  }
+  };
 
-  // ---------------------------
-  //  حالت 1: بدون گزارش → هیچ UI دیگری نده
-  // ---------------------------
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('fa-IR') : '');
+
+  // ---------------- Render logic ----------------
+  if (loading) return <p>در حال بارگذاری...</p>;
+
   if (reports.length === 0) {
     return (
       <div className="bg-white p-4 rounded-xl shadow text-gray-600">
@@ -48,10 +90,8 @@ export default function CoachFeedbackViewer({ userId }) {
     );
   }
 
-  // از اینجا به بعد یعنی reports وجود دارد
   const latest = reports[0];
   const feedback = latest?.coachFeedback || {};
-  console.log('latest report ', latest);
   const hasFeedback =
     feedback?.comment ||
     typeof feedback?.score === 'number' ||
@@ -59,23 +99,27 @@ export default function CoachFeedbackViewer({ userId }) {
       (v) => v !== null && v !== ''
     );
 
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('fa-IR') : '');
   return (
     <div className="space-y-6">
-      {/* ===== گزارش واقعی کاربر ===== */}
+      {/* ===== گزارش واقعی ===== */}
       <div className="bg-white p-4 rounded-xl shadow space-y-2">
         <h3 className="font-bold text-lg">آخرین گزارش شما</h3>
 
-        {/* نمایش دکمه‌ها فقط در 1 ساعت اول */}
-        {Date.now() < new Date(latest?.editableUntil).getTime() ? (
-          <>
-            <p className="text-xs text-green-600">
-              ⏳ می‌توانید تا یک ساعت این گزارش را ویرایش یا حذف کنید.
-            </p>
+        {timeLeft !== 'اتمام مهلت' ? (
+          <p className="text-xs text-green-600">
+            ⏳ می‌توانید تا {timeLeft} این گزارش را ویرایش یا حذف کنید.
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            ⛔ زمان ویرایش این گزارش تمام شده است
+          </p>
+        )}
 
+        {timeLeft !== 'اتمام مهلت' && (
+          <div className="flex flex-row gap-2">
             <button
               onClick={() => navigate(`/edit-report/${latest._id}`)}
-              className="w-full bg-yellow-500 text-white p-2 rounded-xl">
+              className="w-full bg-yellow-500 text-white p-2 rounded-xl mt-2">
               ویرایش گزارش
             </button>
 
@@ -83,17 +127,12 @@ export default function CoachFeedbackViewer({ userId }) {
               onClick={async () => {
                 if (!confirm('گزارش حذف شود؟')) return;
                 await api.delete(`/report/${latest._id}`);
-                setCreatedReport(null);
-                setSuccessMessage('گزارش حذف شد.');
+                load();
               }}
-              className="w-full bg-red-500 text-white p-2 rounded-xl">
+              className="w-full bg-red-500 text-white p-2 rounded-xl mt-2">
               حذف گزارش
             </button>
-          </>
-        ) : (
-          <p className="text-xs text-gray-500">
-            ⛔ زمان ویرایش این گزارش تمام شده است
-          </p>
+          </div>
         )}
 
         <p className="text-gray-600">
@@ -115,27 +154,34 @@ export default function CoachFeedbackViewer({ userId }) {
           قدم‌ها: {latest.avgSteps} — قدرتی: {latest.strengthDays} — هوازی:{' '}
           {latest.cardioDays}
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {latest.extraPhotos.map((f) => (
-            <div key={f} className="relative border rounded-lg overflow-hidden">
-              <img src={f} className="w-full h-24 object-cover" />
-            </div>
-          ))}
-        </div>
+
+        {latest.extraPhotos?.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3">
+            {latest.extraPhotos.map((f) => (
+              <div
+                key={f}
+                className="relative border rounded-lg overflow-hidden">
+                <img src={f} className="w-full h-24 object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {latest.note && (
-          <p className="text-gray-700 whitespace-pre-line">
+          <p className="text-gray-700 whitespace-pre-line mt-3">
             📝 <strong>یادداشت شما:</strong> {latest.note}
           </p>
         )}
       </div>
-      {/* ===== اگر فیدبک وجود نداشت ===== */}
+
+      {/* ===== بدون فیدبک ===== */}
       {!hasFeedback && (
         <div className="bg-white p-4 rounded-xl shadow text-gray-500">
           برای این گزارش هنوز فیدبکی ثبت نشده است.
         </div>
       )}
-      {/* ===== اگر فیدبک وجود دارد ===== */}
+
+      {/* ===== فیدبک ===== */}
       {hasFeedback && (
         <>
           <div className="bg-white shadow p-4 rounded-xl">
@@ -147,7 +193,7 @@ export default function CoachFeedbackViewer({ userId }) {
             )}
 
             {feedback.nextPeriodPlan && (
-              <div className="bg-gray-50 p-3 rounded">
+              <div className="bg-gray-50 p-3 rounded mt-2">
                 <h4 className="font-semibold mb-1">برنامه دوره بعد:</h4>
 
                 {Object.entries(feedback.nextPeriodPlan).map(
@@ -181,7 +227,6 @@ export default function CoachFeedbackViewer({ userId }) {
                     {fb.comment && (
                       <p className="text-gray-700">💬 {fb.comment}</p>
                     )}
-
                     {typeof fb.score === 'number' && <p>⭐ {fb.score}/10</p>}
 
                     {fb.nextPeriodPlan && (
