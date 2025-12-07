@@ -1,11 +1,12 @@
 // CoachFeedbackViewer.jsx
 import React, { useEffect, useState } from 'react';
 import api from 'api/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function CoachFeedbackViewer({ userId }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     load();
   }, []);
@@ -50,7 +51,7 @@ export default function CoachFeedbackViewer({ userId }) {
   // از اینجا به بعد یعنی reports وجود دارد
   const latest = reports[0];
   const feedback = latest?.coachFeedback || {};
-
+  console.log('latest report ', latest);
   const hasFeedback =
     feedback?.comment ||
     typeof feedback?.score === 'number' ||
@@ -64,6 +65,36 @@ export default function CoachFeedbackViewer({ userId }) {
       {/* ===== گزارش واقعی کاربر ===== */}
       <div className="bg-white p-4 rounded-xl shadow space-y-2">
         <h3 className="font-bold text-lg">آخرین گزارش شما</h3>
+
+        {/* نمایش دکمه‌ها فقط در 1 ساعت اول */}
+        {Date.now() < new Date(latest?.editableUntil).getTime() ? (
+          <>
+            <p className="text-xs text-green-600">
+              ⏳ می‌توانید تا یک ساعت این گزارش را ویرایش یا حذف کنید.
+            </p>
+
+            <button
+              onClick={() => navigate(`/edit-report/${latest._id}`)}
+              className="w-full bg-yellow-500 text-white p-2 rounded-xl">
+              ویرایش گزارش
+            </button>
+
+            <button
+              onClick={async () => {
+                if (!confirm('گزارش حذف شود؟')) return;
+                await api.delete(`/report/${latest._id}`);
+                setCreatedReport(null);
+                setSuccessMessage('گزارش حذف شد.');
+              }}
+              className="w-full bg-red-500 text-white p-2 rounded-xl">
+              حذف گزارش
+            </button>
+          </>
+        ) : (
+          <p className="text-xs text-gray-500">
+            ⛔ زمان ویرایش این گزارش تمام شده است
+          </p>
+        )}
 
         <p className="text-gray-600">
           دوره: {latest.type === 'weekly' ? 'هفتگی' : 'ماهانه'}
@@ -84,6 +115,13 @@ export default function CoachFeedbackViewer({ userId }) {
           قدم‌ها: {latest.avgSteps} — قدرتی: {latest.strengthDays} — هوازی:{' '}
           {latest.cardioDays}
         </p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {latest.extraPhotos.map((f) => (
+            <div key={f} className="relative border rounded-lg overflow-hidden">
+              <img src={f} className="w-full h-24 object-cover" />
+            </div>
+          ))}
+        </div>
 
         {latest.note && (
           <p className="text-gray-700 whitespace-pre-line">

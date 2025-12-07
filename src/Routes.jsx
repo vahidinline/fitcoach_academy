@@ -18,6 +18,7 @@ import CertificateIndex from 'pages/Certificate';
 import Quiz from 'pages/Quiz';
 import PaymentResult from 'pages/payment-processing/components/PaymentResult';
 import PaymentHistory from 'components/PaymentHistory';
+import EditReportPage from 'pages/progress-report-submission/components/EditReport';
 
 const Routes = () => {
   return (
@@ -39,6 +40,7 @@ const Routes = () => {
               path="/progress-report-submission"
               element={<ProgressReportSubmission />}
             />
+            <Route path="/edit-report/:id" element={<EditReportPage />} />
             <Route
               path="/training-video-player/:videoId"
               element={<TrainingVideoPlayer />}

@@ -3,6 +3,9 @@ import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
 import { canSubmitToday } from 'utils/canSubmitReport';
+import ReportCountdown from 'utils/ReportCountdown';
+import NextReportTimer from 'utils/NextReportTimer';
+import { useNavigate } from 'react-router-dom';
 
 const generateOptions = (step = 5) => {
   const arr = [];
@@ -21,7 +24,29 @@ const CalorieTrackingSection = () => {
   const [subscription, setSubscription] = useState(null);
   const [remaining, setRemaining] = useState(null);
   const [periodType, setPeriodType] = useState('weekly');
+  const [hasSentToday, setHasSentToday] = useState(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    async function check() {
+      const res = await api.get(`/report/my?userId=${userId}`);
+      const list = res.data.reports || [];
 
+      if (list.length > 0) {
+        const last = new Date(list[0].date);
+        const now = new Date();
+
+        if (
+          last.getFullYear() === now.getFullYear() &&
+          last.getMonth() === now.getMonth() &&
+          last.getDate() === now.getDate()
+        ) {
+          setHasSentToday(true);
+        }
+      }
+    }
+
+    check();
+  }, []);
   const [fields, setFields] = useState({
     avgCalories: '',
     proteinPercent: 30,
@@ -40,11 +65,13 @@ const CalorieTrackingSection = () => {
     return (
       <div className="p-4 text-center">
         <h2 className="text-xl font-bold text-red-600 mb-2">
-          ⛔ امکان ارسال گزارش امروز فعال نیست
+          ⛔ شما نمیتوانید گزارش ارسال کنید
         </h2>
         <p className="text-gray-700">
           شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
         </p>
+        {canSubmitToday() && <ReportCountdown />}
+        <NextReportTimer />
       </div>
     );
   }
@@ -165,35 +192,7 @@ const CalorieTrackingSection = () => {
           console.log('User wants to buy more reports!');
         }}
       />
-      {/* نمایش دکمه‌ها فقط در 1 ساعت اول */}
-      {Date.now() < new Date(createdReport.editableUntil).getTime() ? (
-        <>
-          <p className="text-xs text-green-600">
-            ⏳ می‌توانید تا یک ساعت این گزارش را ویرایش یا حذف کنید.
-          </p>
 
-          <button
-            onClick={() => console.log('edit')}
-            className="w-full bg-yellow-500 text-white p-2 rounded-xl">
-            ویرایش گزارش
-          </button>
-
-          <button
-            onClick={async () => {
-              if (!confirm('گزارش حذف شود؟')) return;
-              await api.delete(`/report/${createdReport._id}`);
-              setCreatedReport(null);
-              setSuccessMessage('گزارش حذف شد.');
-            }}
-            className="w-full bg-red-500 text-white p-2 rounded-xl">
-            حذف گزارش
-          </button>
-        </>
-      ) : (
-        <p className="text-xs text-gray-500">
-          ⛔ زمان ویرایش این گزارش تمام شده است
-        </p>
-      )}
       <form onSubmit={submitReport} className="space-y-5 p-4">
         {/* PERIOD TOGGLE */}
         <div className="flex gap-2">
@@ -366,6 +365,11 @@ const CalorieTrackingSection = () => {
         <div className="text-center p-3 text-blue-600 font-medium">
           لطفاً صبر کنید، گزارش در حال ارسال است...
         </div>
+      )}
+      {hasSentToday && (
+        <p className="text-red-600 font-bold mt-2">
+          ⚠️ شما امروز گزارش ارسال کرده‌اید.
+        </p>
       )}
 
       {successMessage && (
