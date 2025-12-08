@@ -14,6 +14,9 @@ import ReportQuota from './components/ReportQuota';
 import WeightDashboard from './components/WeightDashboard';
 import CoachFeedbackViewer from './components/CoachFeedbackViewer';
 import { useSearchParams } from 'react-router-dom';
+import LabTestUpload from './components/LabTestUpload';
+import BodyAnalysisUpload from './components/BodyAnalysisUpload';
+import UserAttachments from './components/UserAttachments';
 
 const ProgressReportSubmission = () => {
   const navigate = useNavigate();
@@ -117,6 +120,21 @@ const ProgressReportSubmission = () => {
       label: ' فیدبک مربی',
       icon: 'FileText',
     },
+    {
+      id: 'labTest',
+      label: ' آزمایشات پزشکی',
+      icon: 'FileText',
+    },
+    {
+      id: 'bodyAnalysis',
+      label: ' بادی آنالیز',
+      icon: 'FileText',
+    },
+    {
+      id: 'attachments',
+      label: 'ضمیمه ها',
+      icon: 'FileText',
+    },
   ];
 
   const hasAnyData = () => {
@@ -164,6 +182,12 @@ const ProgressReportSubmission = () => {
         return <WeightDashboard />;
       case 'notes':
         return <CoachFeedbackViewer userId={userId} />;
+      case 'labTest':
+        return <LabTestUpload userId={userId} />;
+      case 'bodyAnalysis':
+        return <BodyAnalysisUpload userId={userId} />;
+      case 'attachments':
+        return <UserAttachments userId={userId} />;
       default:
         return null;
     }

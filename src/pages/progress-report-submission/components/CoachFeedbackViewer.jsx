@@ -9,7 +9,7 @@ export default function CoachFeedbackViewer({ userId }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState('');
-
+  console.log('all reports', reports);
   // ---------------- Load reports ----------------
   useEffect(() => {
     load();
@@ -91,6 +91,7 @@ export default function CoachFeedbackViewer({ userId }) {
   }
 
   const latest = reports[0];
+
   const feedback = latest?.coachFeedback || {};
   const hasFeedback =
     feedback?.comment ||
