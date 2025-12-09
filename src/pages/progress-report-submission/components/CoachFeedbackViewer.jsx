@@ -73,6 +73,7 @@ export default function CoachFeedbackViewer({ userId }) {
       fiberTarget: 'فیبر روزانه (گرم)',
       dailyStepsTarget: 'هدف قدم روزانه',
       trainingDaysTarget: 'روزهای تمرین',
+      cardioDaysTarget: ' هوازی در هفته/دقیقه',
     };
     return map[key] || key;
   };

@@ -38,8 +38,11 @@ export default function WeightDashboard() {
   }
 
   const { startingWeight, goalWeight, weightEntries } = record;
-  const currentWeight = weightEntries[weightEntries.length - 1]?.weight;
+  const sortedEntries = [...weightEntries].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
 
+  const currentWeight = sortedEntries[sortedEntries.length - 1]?.weight;
   const lost = startingWeight - currentWeight;
   const progressPercent = Math.max(
     0,
@@ -76,7 +79,7 @@ export default function WeightDashboard() {
       </div>
 
       {/* چارت پیشرفت */}
-      <WeightChart userId={userId} />
+      <WeightChart userId={userId} entries={sortedEntries} />
 
       {/* فرم ثبت وزن جدید */}
       <AddWeightEntry userId={userId} onAdded={load} />
