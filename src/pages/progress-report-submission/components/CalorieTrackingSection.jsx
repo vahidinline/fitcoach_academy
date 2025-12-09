@@ -59,20 +59,20 @@ const CalorieTrackingSection = () => {
   const macroOptions = generateOptions(5);
   const allowed = canSubmitToday();
 
-  // if (!allowed) {
-  //   return (
-  //     <div className="p-4 text-center">
-  //       <h2 className="text-xl font-bold text-red-600 mb-2">
-  //         ⛔ شما نمیتوانید گزارش ارسال کنید
-  //       </h2>
-  //       <p className="text-gray-700">
-  //         شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
-  //       </p>
-  //       {canSubmitToday() && <ReportCountdown />}
-  //       <NextReportTimer />
-  //     </div>
-  //   );
-  // }
+  if (!allowed) {
+    return (
+      <div dir="rtl" className="p-4 text-center">
+        <h2 className="text-xl font-bold text-red-600 mb-2">
+          ⛔ شما نمیتوانید گزارش ارسال کنید
+        </h2>
+        <p className="text-gray-700">
+          شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
+        </p>
+        {canSubmitToday() && <ReportCountdown />}
+        {/* <NextReportTimer /> */}
+      </div>
+    );
+  }
 
   const computePeriod = () => {
     const end = new Date();
