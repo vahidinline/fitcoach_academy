@@ -67,9 +67,9 @@ const VideoRecommendations = ({
               <h4 className="font-medium text-card-foreground  line-clamp-2 p-1">
                 {nextVideo.title}
               </h4>
-              {/* <p className="text-xs text-muted-foreground m-2">
+              <p className="text-xs text-muted-foreground m-2">
                 {nextVideo.description}
-              </p> */}
+              </p>
               {/* <div className="flex items-center space-x-2 mb-3">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
@@ -146,7 +146,7 @@ const VideoRecommendations = ({
                     className={`text-sm font-medium truncate ${
                       video.current ? 'text-primary' : 'text-card-foreground'
                     }`}>
-                    {video.title}
+                    {video.description}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDuration(video.duration)} • {video.difficulty}
