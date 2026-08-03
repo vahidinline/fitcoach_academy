@@ -1,119 +1,14 @@
-// MeasurementForm.jsx
 import React, { useState } from 'react';
 import api from 'api/api';
 import MeasurementChart from './MeasurementCharts';
+import Icon from '../../../components/AppIcon';
+import { normalizeDigits } from 'utils/persianNumbers';
 
+const fields = [['chest','دور سینه','ScanLine'],['waist','دور کمر','Ruler'],['hips','دور باسن','CircleDot'],['bicep','دور بازو','Dumbbell']];
 export default function MeasurementForm({ onSaved }) {
   const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
-  const [status, setStatus] = useState(null);
-  const [data, setData] = useState({
-    unitSystem: 'metric',
-    chest: '',
-    waist: '',
-    hips: '',
-    bicep: '',
-    custom: [],
-  });
-
-  const [customItem, setCustomItem] = useState({
-    label: '',
-    value: '',
-    unit: '',
-  });
-
-  const save = async () => {
-    const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
-
-    const payload = {
-      userId,
-      unitSystem: data.unitSystem,
-      measurements: {
-        chest: data.chest,
-        waist: data.waist,
-        hips: data.hips,
-        bicep: data.bicep,
-        // اگر custom هم خواستی اضافه کنی:
-        // ...data.custom
-      },
-      custom: data.custom, // اگر می‌خواهی جدا هم بفرستی
-    };
-
-    await api.post('/report/measurement', payload);
-    onSaved?.();
-    setStatus('saved');
-    setTimeout(() => setStatus(null), 2000);
-  };
-
-  const addCustom = () => {
-    if (!customItem.label || !customItem.value) return;
-    setData({
-      ...data,
-      custom: [...data.custom, customItem],
-    });
-    setCustomItem({ label: '', value: '', unit: '' });
-  };
-
-  return (
-    <div className="p-4 bg-white shadow rounded-xl space-y-4">
-      <h3 className="font-bold text-lg">ثبت اندازه‌های جدید</h3>
-
-      {['chest', 'waist', 'hips', 'bicep'].map((k) => (
-        <input
-          key={k}
-          type="number"
-          placeholder={k}
-          value={data[k] || ''}
-          onChange={(e) => setData({ ...data, [k]: e.target.value })}
-          className="border p-2 w-full rounded"
-        />
-      ))}
-
-      {/* Custom fields */}
-      {/* <div className="flex gap-2">
-        <input
-          className="border p-2 w-1/3"
-          placeholder="label"
-          value={customItem.label}
-          onChange={(e) =>
-            setCustomItem({ ...customItem, label: e.target.value })
-          }
-        />
-        <input
-          className="border p-2 w-1/3"
-          placeholder="value"
-          type="number"
-          value={customItem.value}
-          onChange={(e) =>
-            setCustomItem({ ...customItem, value: e.target.value })
-          }
-        />
-        <input
-          className="border p-2 w-1/3"
-          placeholder="unit"
-          value={customItem.unit}
-          onChange={(e) =>
-            setCustomItem({ ...customItem, unit: e.target.value })
-          }
-        />
-        <button
-          onClick={addCustom}
-          className="bg-blue-600 text-white px-3 rounded-xl">
-          +
-        </button>
-      </div> */}
-
-      <button
-        onClick={save}
-        className="bg-blue-600 text-white py-2 w-full rounded-lg">
-        ذخیره
-      </button>
-      {status === 'saved' && (
-        <div className="p-2 text-center bg-green-100 text-green-700 rounded-lg">
-          اندازه‌گیری با موفقیت ذخیره شد ✔️
-        </div>
-      )}
-
-      <MeasurementChart userId={userId} />
-    </div>
-  );
+  const [status,setStatus]=useState(null); const [saving,setSaving]=useState(false); const [error,setError]=useState('');
+  const [data,setData]=useState({unitSystem:'metric',chest:'',waist:'',hips:'',bicep:''});
+  const save=async()=>{const entered=fields.filter(([key])=>data[key] !== ''); if(!entered.length)return setError('حداقل یک اندازه را وارد کنید.'); if(entered.some(([key])=>{const value=Number(normalizeDigits(data[key]));return !value||value<10||value>300;}))return setError('اندازه‌ها باید بین ۱۰ تا ۳۰۰ سانتی‌متر باشند.'); setSaving(true);setError('');try{await api.post('/report/measurement',{userId,unitSystem:data.unitSystem,measurements:Object.fromEntries(fields.map(([key])=>[key,data[key]]))});setStatus('saved');setData({...data,chest:'',waist:'',hips:'',bicep:''});onSaved?.();setTimeout(()=>setStatus(null),2500);}catch(err){setError(err.response?.data?.error||'ذخیره اندازه‌ها ناموفق بود.');}finally{setSaving(false);}};
+  return <div className="space-y-7" dir="rtl"><header className="flex items-start gap-4"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#1c2c29] text-white"><Icon name="Ruler" size={21}/></span><div><p className="academy-kicker">اندازه‌گیری دوره‌ای</p><h3 className="mt-1 text-xl font-black text-[#1c2c29]">اندازه‌های بدن</h3><p className="mt-2 text-sm leading-7 text-[#66736e]">متر را بدون فشار و در وضعیت ثابت نگه دارید تا مقایسه‌ها دقیق‌تر باشند.</p></div></header><section className="rounded-[24px] border border-[#e2ded5] bg-[#fbfaf6] p-5"><div className="grid gap-4 sm:grid-cols-2">{fields.map(([key,label,icon])=><label key={key}><span className="mb-2 flex items-center gap-2 text-xs font-bold text-[#52605b]"><Icon name={icon} size={15} className="text-[#df6b52]"/>{label}</span><span className="relative block"><input inputMode="decimal" value={data[key]} onChange={(e)=>setData({...data,[key]:normalizeDigits(e.target.value)})} placeholder="مثلاً ۸۵" className="h-[52px] w-full rounded-2xl border border-[#dcd8cf] bg-white px-4 pl-14 outline-none focus:border-[#df6b52] focus:ring-4 focus:ring-[#df6b52]/10"/><span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#87928e]">cm</span></span></label>)}</div>{error&&<p className="mt-4 text-xs font-bold text-red-600">{error}</p>}{status==='saved'&&<p className="mt-4 rounded-xl bg-[#edf4eb] p-3 text-center text-xs font-bold text-[#315a38]">اندازه‌ها با موفقیت ثبت شدند.</p>}<button onClick={save} disabled={saving} className="academy-primary-button mt-5 w-full disabled:opacity-50">{saving?'در حال ذخیره…':'ذخیره اندازه‌های جدید'}</button></section><MeasurementChart userId={userId} refreshKey={status}/></div>;
 }

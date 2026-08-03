@@ -54,29 +54,37 @@ export default function BasicForm() {
   }, [userId]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="academy-shell academy-grain">
       <ContextualHeader />
-      <div className="max-w-2xl mx-auto pt-20 p-4 bg-white rounded-lg shadow-md font-custom1">
+      <main className="academy-page relative z-10" dir="rtl">
+        <div className="mb-7">
+          <p className="academy-kicker">حساب و ارزیابی</p>
+          <h2 className="academy-title mt-2">پروفایل من</h2>
+          <p className="mt-3 text-sm leading-7 text-[#68716d]">اطلاعات پایه و ارزیابی بدنی خود را کامل و به‌روز نگه دار.</p>
+        </div>
+        <div className="academy-surface mx-auto max-w-3xl p-4 sm:p-7">
         {/* ---- TABS ---- */}
-        <div dir="rtl" className="flex justify-center mb-6 gap-4">
+        <div className="mb-7 grid grid-cols-2 rounded-2xl bg-[#eae6dc] p-1.5">
           <button
+            type="button"
             onClick={() => setActiveTab('profile')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
+            className={`min-h-11 rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeTab === 'profile'
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200'
+                ? 'bg-[#1c2c29] text-white shadow-lg'
+                : 'text-[#68716d]'
             }`}>
-            اطلاعات کاربر
+            اطلاعات شخصی
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('assessment')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
+            className={`min-h-11 rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeTab === 'assessment'
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200'
+                ? 'bg-[#1c2c29] text-white shadow-lg'
+                : 'text-[#68716d]'
             }`}>
-            فرم ارزیابی
+            ارزیابی اولیه
           </button>
         </div>
 
@@ -91,7 +99,8 @@ export default function BasicForm() {
         ) : (
           <AssessmentWizard />
         )}
-      </div>
+        </div>
+      </main>
 
       <BottomTabNavigation />
     </div>

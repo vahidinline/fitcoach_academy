@@ -1,86 +1,8 @@
-// // WeightChart.jsx
-// import React, { useEffect, useState } from 'react';
-// import api from 'api/api';
-// import { Line } from 'react-chartjs-2';
-// import 'chart.js/auto';
-
-// export default function WeightChart({ userId }) {
-//   const [data, setData] = useState(null);
-
-//   useEffect(() => {
-//     load();
-//   }, []);
-
-//   const load = async () => {
-//     const res = await api.get(`/report/weight/${userId}`);
-//     setData(res.data.data);
-//   };
-
-//   if (!data) return <p>هیچ داده‌ای موجود نیست</p>;
-
-//   return (
-//     <div className="p-4 bg-white rounded-xl shadow">
-//       <h3 className="font-bold mb-4">نمودار پیشرفت وزن</h3>
-
-//       <Line
-//         data={{
-//           labels: data.weightEntries.map((e) =>
-//             new Date(e.date).toLocaleDateString('fa-IR')
-//           ),
-//           datasets: [
-//             {
-//               label: 'وزن',
-//               data: data.weightEntries.map((e) => e.weight),
-//               borderColor: 'rgb(37, 99, 235)',
-//               tension: 0.4,
-//             },
-//             {
-//               label: 'وزن هدف',
-//               data: data.weightEntries.map(() => data.goalWeight),
-//               borderColor: 'rgb(239, 68, 68)',
-//               borderDash: [5, 5],
-//             },
-//           ],
-//         }}
-//       />
-//     </div>
-//   );
-// }
-// WeightChart.jsx
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 
 export default function WeightChart({ entries, goal }) {
-  if (!entries || entries.length === 0) {
-    return <p>هیچ داده‌ای موجود نیست</p>;
-  }
-
-  return (
-    <div className="p-4 bg-white rounded-xl shadow">
-      <h3 className="font-bold mb-4">نمودار پیشرفت وزن</h3>
-
-      <Line
-        data={{
-          labels: entries.map((e) =>
-            new Date(e.date).toLocaleDateString('fa-IR')
-          ),
-          datasets: [
-            {
-              label: 'وزن',
-              data: entries.map((e) => e.weight),
-              borderColor: 'rgb(37, 99, 235)',
-              tension: 0.4,
-            },
-            {
-              label: 'وزن هدف',
-              data: entries.map(() => goal),
-              borderColor: 'rgb(239, 68, 68)',
-              borderDash: [5, 5],
-            },
-          ],
-        }}
-      />
-    </div>
-  );
+  if (!entries?.length) return <div className="rounded-2xl border border-dashed border-[#cfd4cf] bg-[#f8f6f0] p-8 text-center text-sm text-[#87928e]">با ثبت وزن جدید، نمودار مسیر شما اینجا ساخته می‌شود.</div>;
+  return <section className="rounded-[24px] border border-[#e2ded5] bg-white p-4 sm:p-5"><div className="mb-5"><p className="academy-kicker">نمایش روند</p><h4 className="mt-1 font-black text-[#1c2c29]">نمودار تغییرات وزن</h4></div><div className="h-64 sm:h-80"><Line data={{ labels: entries.map((entry) => new Date(entry.date).toLocaleDateString('fa-IR')), datasets: [{ label:'وزن', data:entries.map((entry)=>entry.weight), borderColor:'#1c2c29', backgroundColor:'rgba(28,44,41,.08)', pointBackgroundColor:'#df6b52', pointBorderColor:'#fff', pointBorderWidth:3, pointRadius:5, tension:.35, fill:true }, { label:'وزن هدف', data:entries.map(()=>goal), borderColor:'#df6b52', borderDash:[7,7], pointRadius:0 }] }} options={{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ usePointStyle:true, font:{ family:'Vazirmatn' } } } }, scales:{ x:{ grid:{ display:false } }, y:{ grid:{ color:'rgba(28,44,41,.07)' } } } }} /></div></section>;
 }

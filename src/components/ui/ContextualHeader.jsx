@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Bell, ChevronRight, LogOut } from 'lucide-react';
 import { useNotifications } from 'context/NotificationContext';
 import NotificationsPanel from 'components/NotificationsPanel';
+
+const titles = [
+  ['/user-dashboard', 'خانه'],
+  ['/progress-report-submission', 'گزارش و مسیر پیشرفت'],
+  ['/training-video-player', 'آموزش‌ها'],
+  ['/user-basic-data', 'پروفایل من'],
+];
 
 const ContextualHeader = () => {
   const location = useLocation();
@@ -12,118 +19,75 @@ const ContextualHeader = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const u = JSON.parse(localStorage.getItem('userData'));
-    setUser(u);
+    try {
+      setUser(JSON.parse(localStorage.getItem('userData') || 'null'));
+    } catch {
+      setUser(null);
+    }
   }, []);
 
-  /** ---------------- Header Configuration ---------------- */
-  const headerConfig = {
-    '/login': { back: false, title: '', logo: true, actions: false },
-    '/registration-stepper': {
-      back: true,
-      title: 'خرید دوره تناسب اندام',
-      logo: true,
-      actions: false,
-    },
-    '/user-dashboard': {
-      back: false,
-      title: 'پنل کاربری',
-      logo: false,
-      actions: true,
-    },
-    '/training-video-player': {
-      back: true,
-      title: 'جلسات آموزشی',
-      logo: false,
-      actions: false,
-    },
-    '/progress-report-submission': {
-      back: true,
-      title: 'گزارش پیشرفت',
-      logo: false,
-      actions: false,
-    },
-    '/payment-processing': {
-      back: true,
-      title: 'پرداخت امن',
-      logo: true,
-      actions: false,
-    },
-  };
-
-  const config = headerConfig[location.pathname] || {
-    back: false,
-    title: '',
-    logo: true,
-    actions: true,
-  };
-
-  const handleBack = () => navigate(-1);
+  const title = titles.find(([path]) => location.pathname.startsWith(path))?.[1] || '';
+  const isDashboard = location.pathname === '/user-dashboard';
+  const showBack = !isDashboard && !['/', '/login', '/registration-stepper'].includes(location.pathname);
 
   const handleLogout = () => {
     localStorage.removeItem('userData');
     localStorage.removeItem('authToken');
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-16 flex items-center px-4 lg:px-6">
-      <div className="flex w-full items-center justify-between" dir="rtl">
-        {/* ---------- Right Section (Back + Title) ---------- */}
-        <div className="flex items-center gap-3">
-          {config.back && (
-            <button
-              onClick={handleBack}
-              className="p-2 rounded-lg hover:bg-muted transition lg:hidden">
-              <ArrowLeft size={22} className="text-foreground" />
-            </button>
-          )}
-
-          {config.logo && (
-            <span className="font-semibold text-lg text-foreground hidden sm:block">
-              پنل دوره
-            </span>
-          )}
-
-          {config.title && (
-            <h1 className="text-lg font-semibold text-foreground">
-              {config.title}
-            </h1>
-          )}
-        </div>
-
-        {/* ---------- Center Placeholder (optional) ---------- */}
-        <div className="flex-1 hidden lg:block"></div>
-
-        {/* ---------- Left Section (Notifications + Logout) ---------- */}
-        <div className="flex items-center gap-3">
-          {/* Notif Button */}
-          <button
-            onClick={() => setOpenNotifications(true)}
-            className="relative p-2 rounded-lg hover:bg-muted transition">
-            <Bell size={24} className="text-gray-800" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {unreadCount}
-              </span>
+    <>
+      <header
+        dir="rtl"
+        className="fixed inset-x-0 top-0 z-50 h-[4.5rem] border-b border-[#1c2c29]/10 bg-[#f3efe7]/85 px-4 backdrop-blur-xl sm:px-6 lg:pr-[19rem]">
+        <div className="mx-auto flex h-full max-w-[1320px] items-center justify-between lg:px-10">
+          <div className="flex min-w-0 items-center gap-3">
+            {showBack && (
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                aria-label="بازگشت"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#1c2c29]/10 bg-white/60 text-[#1c2c29] transition hover:bg-white">
+                <ChevronRight size={20} />
+              </button>
             )}
-          </button>
+            <div className="min-w-0">
+              <p className="academy-kicker hidden sm:block">SHAPE UP ACADEMY</p>
+              <h1 className="truncate text-base font-black text-[#18211f] sm:text-lg">
+                {isDashboard ? `سلام ${user?.name || ''}` : title}
+              </h1>
+            </div>
+          </div>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1 bg-muted px-3 py-2 rounded-lg hover:bg-muted/70 transition">
-            <LogOut size={20} className="text-gray-800" />
-            <span className="hidden sm:block text-sm text-gray-800">خروج</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOpenNotifications(true)}
+              aria-label="اعلان‌ها"
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#1c2c29]/10 bg-white/60 text-[#1c2c29] transition hover:bg-white">
+              <Bell size={19} />
+              {unreadCount > 0 && (
+                <span className="absolute -left-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#df6b52] px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? '۹+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="hidden h-10 items-center gap-2 rounded-xl border border-[#1c2c29]/10 bg-white/60 px-3 text-xs font-bold text-[#68716d] transition hover:bg-white hover:text-[#18211f] sm:flex">
+              <LogOut size={17} />
+              خروج
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Notifications Panel */}
       {openNotifications && (
         <NotificationsPanel onClose={() => setOpenNotifications(false)} />
       )}
-    </header>
+    </>
   );
 };
 

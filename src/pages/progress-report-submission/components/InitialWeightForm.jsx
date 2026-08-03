@@ -1,83 +1,10 @@
 import React, { useState } from 'react';
 import api from 'api/api';
-
+import Icon from '../../../components/AppIcon';
+import { normalizeDigits } from 'utils/persianNumbers';
 export default function InitialWeightForm({ onComplete }) {
-  const userId = JSON.parse(localStorage.getItem('userData')).id;
-
-  const [startingWeight, setStartingWeight] = useState('');
-  const [goalWeight, setGoalWeight] = useState('');
-  const [date, setDate] = useState(''); // تاریخ اختیاری
-  const [loading, setLoading] = useState(false);
-
-  const save = async () => {
-    if (!startingWeight || !goalWeight) return;
-
-    setLoading(true);
-    try {
-      await api.post('/report/weight/init', {
-        userId,
-        startingWeight: Number(startingWeight),
-        goalWeight: Number(goalWeight),
-        date: date || undefined, // ← اگر وارد نشود نمی‌فرستیم
-      });
-
-      onComplete && onComplete();
-    } catch (err) {
-      console.error('Initial weight save error:', err);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="p-4 bg-white rounded-xl shadow space-y-4">
-      <h3 className="font-bold">ثبت وزن اولیه</h3>
-
-      {/* وزن اولیه */}
-      <div>
-        <label className="text-sm text-gray-600">وزن اولیه</label>
-        <input
-          type="number"
-          className="border p-2 rounded w-full mt-1"
-          value={startingWeight}
-          onChange={(e) => setStartingWeight(e.target.value)}
-          placeholder="مثال: 75"
-        />
-      </div>
-
-      {/* وزن هدف */}
-      <div>
-        <label className="text-sm text-gray-600">وزن هدف</label>
-        <input
-          type="number"
-          className="border p-2 rounded w-full mt-1"
-          value={goalWeight}
-          onChange={(e) => setGoalWeight(e.target.value)}
-          placeholder="مثال: 60"
-        />
-      </div>
-
-      {/* تاریخ اختیاری */}
-      <div>
-        <label className="text-sm text-gray-600">
-          تاریخ وزن اولیه (اختیاری)
-        </label>
-        <input
-          type="date"
-          className="border p-2 rounded w-full mt-1"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          اگر خالی باشید، تاریخ امروز ثبت می‌شود.
-        </p>
-      </div>
-
-      <button
-        onClick={save}
-        disabled={loading}
-        className="bg-blue-600 text-white py-2 w-full rounded">
-        {loading ? 'در حال ذخیره...' : 'ذخیره'}
-      </button>
-    </div>
-  );
+  const userId = JSON.parse(localStorage.getItem('userData') || '{}').id; const [startingWeight,setStartingWeight]=useState(''); const [goalWeight,setGoalWeight]=useState(''); const [date,setDate]=useState(''); const [loading,setLoading]=useState(false); const [error,setError]=useState('');
+  const save = async () => { const start=Number(normalizeDigits(startingWeight)); const goal=Number(normalizeDigits(goalWeight)); if (!start || !goal || start < 20 || start > 400 || goal < 20 || goal > 400) return setError('وزن شروع و هدف باید بین ۲۰ تا ۴۰۰ کیلوگرم باشند.'); setLoading(true); setError(''); try { await api.post('/report/weight/init',{userId,startingWeight:start,goalWeight:goal,date:date||undefined}); onComplete?.(); } catch(err){setError(err.response?.data?.error||'ذخیره اطلاعات وزن ناموفق بود.');} finally{setLoading(false);} };
+  const inputClass="h-[52px] w-full rounded-2xl border border-[#dcd8cf] bg-white px-4 outline-none focus:border-[#df6b52] focus:ring-4 focus:ring-[#df6b52]/10";
+  return <section className="mx-auto max-w-xl" dir="rtl"><div className="rounded-[28px] bg-[#1c2c29] p-6 text-white"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#df6b52]"><Icon name="Scale" size={22}/></span><h3 className="mt-5 text-xl font-black">نقطه شروع مسیر وزن</h3><p className="mt-2 text-sm leading-7 text-white/60">برای رسم روند، وزن فعلی و هدف واقع‌بینانه خود را ثبت کنید.</p></div><div className="rounded-b-[28px] border border-t-0 border-[#dedad1] bg-[#fbfaf6] p-5"><div className="grid gap-4 sm:grid-cols-2"><label><span className="mb-2 block text-xs font-bold text-[#52605b]">وزن شروع</span><input inputMode="decimal" value={startingWeight} onChange={(e)=>setStartingWeight(normalizeDigits(e.target.value))} className={inputClass} placeholder="کیلوگرم"/></label><label><span className="mb-2 block text-xs font-bold text-[#52605b]">وزن هدف</span><input inputMode="decimal" value={goalWeight} onChange={(e)=>setGoalWeight(normalizeDigits(e.target.value))} className={inputClass} placeholder="کیلوگرم"/></label><label className="sm:col-span-2"><span className="mb-2 block text-xs font-bold text-[#52605b]">تاریخ شروع (اختیاری)</span><input type="date" value={date} onChange={(e)=>setDate(e.target.value)} className={inputClass}/></label></div>{error&&<p className="mt-3 text-xs font-bold text-red-600">{error}</p>}<button onClick={save} disabled={loading} className="academy-primary-button mt-5 w-full disabled:opacity-50">{loading?'در حال ذخیره…':'ثبت نقطه شروع'}</button></div></section>;
 }

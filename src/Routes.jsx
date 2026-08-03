@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes as RouterRoutes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes as RouterRoutes, Route } from 'react-router-dom';
 import ScrollToTop from 'components/ScrollToTop';
 import ErrorBoundary from 'components/ErrorBoundary';
 import AuthenticationGuard from 'components/ui/AuthenticationGuard';
@@ -14,11 +14,16 @@ import NotFound from 'pages/NotFound';
 import BasicForm from 'pages/user-basic-data';
 import CallbackRial from 'pages/Callback';
 import LoginIndex from 'pages/login';
-import CertificateIndex from 'pages/Certificate';
-import Quiz from 'pages/Quiz';
 import PaymentResult from 'pages/payment-processing/components/PaymentResult';
-import PaymentHistory from 'components/PaymentHistory';
 import EditReportPage from 'pages/progress-report-submission/components/EditReport';
+import { academyFeatures } from 'config/features';
+
+const CertificateIndex = React.lazy(() => import('pages/Certificate'));
+const Quiz = React.lazy(() => import('pages/Quiz'));
+const PaymentHistory = React.lazy(() => import('components/PaymentHistory'));
+
+const featureRoute = (enabled, element) =>
+  enabled ? element : <Navigate to="/user-dashboard" replace />;
 
 const Routes = () => {
   return (
@@ -26,10 +31,11 @@ const Routes = () => {
       <ErrorBoundary>
         <AuthenticationGuard>
           <ScrollToTop />
+          <React.Suspense fallback={null}>
           <RouterRoutes>
             {/* Define your routes here */}
             <Route path="/" element={<LoginIndex />} />
-            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/quiz" element={featureRoute(academyFeatures.courseQuiz, <Quiz />)} />
             <Route path="/callback" element={<CallbackRial />} />
             <Route path="/login" element={<LoginIndex />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
@@ -51,14 +57,12 @@ const Routes = () => {
               element={<TrainingVideoPlayer />}
             />
             <Route path="/user-basic-data" element={<BasicForm />} />
-            <Route
-              path="/request-for-certificate"
-              element={<CertificateIndex />}
-            />
+            <Route path="/request-for-certificate" element={featureRoute(academyFeatures.courseCertificate, <CertificateIndex />)} />
             <Route path="/payment-processing" element={<PaymentProcessing />} />
-            <Route path="/payment-history" element={<PaymentHistory />} />
+            <Route path="/payment-history" element={featureRoute(academyFeatures.paymentHistory, <PaymentHistory />)} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
+          </React.Suspense>
         </AuthenticationGuard>
       </ErrorBoundary>
     </BrowserRouter>

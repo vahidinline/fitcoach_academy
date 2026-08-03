@@ -1,28 +1,7 @@
 import React from 'react';
-
+const toEnglishDigits = (value) => value.replace(/[۰-۹]/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)).replace(/[^0-9.]/g, '');
+const fieldClass = 'h-[52px] w-full rounded-2xl border border-[#dcd8cf] bg-[#fbfaf6] px-4 text-sm text-[#1c2c29] outline-none transition focus:border-[#df6b52] focus:ring-4 focus:ring-[#df6b52]/10';
 export default function StepGoal({ data, setData }) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold">هدف شما</h2>
-
-      <select
-        value={data.mainGoal || ''}
-        onChange={(e) => setData({ ...data, mainGoal: e.target.value })}
-        className="input-box">
-        <option value="">هدف اصلی</option>
-        <option value="fatloss">کاهش وزن</option>
-        <option value="muscle">افزایش عضله</option>
-        <option value="recomp">بازترکیب بدن</option>
-        <option value="health">سلامتی عمومی</option>
-      </select>
-
-      <input
-        placeholder="هدف وزنی (اختیاری)"
-        type="number"
-        value={data.targetWeight || ''}
-        onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
-        className="input-box"
-      />
-    </div>
-  );
+  const goals = [['fatloss','کاهش وزن','سبک‌تر شدن با حفظ انرژی'],['muscle','افزایش عضله','ساخت قدرت و فرم بهتر'],['recomp','بازترکیب بدن','کاهش چربی و افزایش عضله'],['health','سلامت عمومی','ساختن عادت‌های پایدار']];
+  return <div className="space-y-6"><div><p className="text-xs font-black text-[#df6b52]">قدم سوم</p><h3 className="mt-1 text-xl font-black text-[#1c2c29]">می‌خواهید به کجا برسید؟</h3><p className="mt-2 text-sm leading-7 text-[#66736e]">هدف اصلی، مسیر پیشنهادهای مربی را مشخص می‌کند.</p></div><div className="grid gap-3 sm:grid-cols-2">{goals.map(([value,title,desc]) => <button type="button" key={value} onClick={() => setData({ ...data, mainGoal: value })} className={`rounded-2xl border p-4 text-right transition ${data.mainGoal === value ? 'border-[#df6b52] bg-[#fff4ef] ring-4 ring-[#df6b52]/10' : 'border-[#dedad1] bg-[#fbfaf6] hover:border-[#aab2ae]'}`}><span className="block font-black text-[#1c2c29]">{title}</span><span className="mt-1 block text-xs leading-6 text-[#66736e]">{desc}</span></button>)}</div><label><span className="mb-2 block text-xs font-bold text-[#52605b]">وزن هدف (اختیاری)</span><input inputMode="decimal" placeholder="کیلوگرم" value={data.targetWeight || ''} onChange={(e) => setData({ ...data, targetWeight: toEnglishDigits(e.target.value) })} className={fieldClass} /></label></div>;
 }

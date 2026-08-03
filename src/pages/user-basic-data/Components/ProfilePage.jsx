@@ -1,93 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import api from 'api/api';
+import Icon from '../../../components/AppIcon';
+
+const fields = [
+  { key: 'name', label: 'نام و نام خانوادگی', type: 'text', icon: 'User', placeholder: 'نام شما' },
+  { key: 'email', label: 'ایمیل', type: 'email', icon: 'Mail', placeholder: 'name@example.com', dir: 'ltr' },
+  { key: 'phoneNumber', label: 'شماره موبایل', type: 'tel', icon: 'Phone', placeholder: '09xxxxxxxxx', dir: 'ltr' },
+  { key: 'instagram', label: 'اینستاگرام', type: 'text', icon: 'Instagram', placeholder: 'username', dir: 'ltr' },
+  { key: 'location', label: 'شهر محل سکونت', type: 'text', icon: 'MapPin', placeholder: 'مثلاً تهران' },
+];
 
 export default function ProfilePage() {
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
-
   const user = JSON.parse(localStorage.getItem('userData') || '{}');
   const userId = user.id;
-
-  const [profile, setProfile] = useState({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    instagram: '',
-    location: '',
-    photo: '',
-  });
-
+  const [profile, setProfile] = useState({ name: '', email: '', phoneNumber: '', instagram: '', location: '', photo: '' });
   const [loading, setLoading] = useState(false);
-
-  // ===== GSAP Animation =====
-  useEffect(() => {
-    if (containerRef.current) {
-      gsap.from(containerRef.current, {
-        opacity: 0,
-        y: 25,
-        duration: 0.6,
-        ease: 'power3.out',
-      });
-    }
-  }, []);
-
-  // ===== Load Existing Profile =====
-  const loadProfile = async () => {
-    try {
-      const res = await api.get(`/api/client/${userId}`);
-      setProfile((p) => ({ ...p, ...res.data }));
-    } catch (err) {
-      console.warn('Profile not found yet.');
-    }
-  };
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    loadProfile();
+    if (containerRef.current) gsap.from(containerRef.current, { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' });
   }, []);
 
-  // ===== Upload Image (same as PhotoUploadSection) =====
-  const uploadPhoto = async (file) => {
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await api.get(`/api/client/${userId}`);
+        setProfile((current) => ({ ...current, ...res.data }));
+      } catch (err) {
+        console.warn('Profile not found yet.');
+      }
+    };
+    if (userId) loadProfile();
+  }, [userId]);
+
+  const handlePhotoChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return alert('لطفاً یک فایل تصویری انتخاب کنید.');
+    if (file.size > 8 * 1024 * 1024) return alert('حجم تصویر باید کمتر از ۸ مگابایت باشد.');
+    setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
-      const res = await api.post('/report/upload-image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      return res.data.url; // URL returned by backend
+      const res = await api.post('/report/upload-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setProfile((current) => ({ ...current, photo: res.data.url }));
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('آپلود عکس ناموفق بود.');
-      return null;
+      alert('آپلود عکس ناموفق بود. دوباره تلاش کنید.');
+    } finally {
+      setUploading(false);
+      event.target.value = '';
     }
   };
 
-  // ===== Handle Image Selection =====
-  const handlePhotoChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = await uploadPhoto(file);
-    if (!url) return;
-
-    setProfile((prev) => ({ ...prev, photo: url }));
-  };
-
-  // ===== Save Profile =====
   const saveProfile = async () => {
+    if (uploading) return;
     setLoading(true);
     try {
       await api.put(`/api/client/${userId}`, profile);
-
-      gsap.to(containerRef.current, {
-        backgroundColor: '#e6ffe6',
-        duration: 0.3,
-        yoyo: true,
-        repeat: 1,
-      });
-
       alert('پروفایل با موفقیت ذخیره شد');
     } catch (err) {
       console.error(err);
@@ -98,81 +71,40 @@ export default function ProfilePage() {
   };
 
   return (
-    <div ref={containerRef} className="p-4 max-w-lg mx-auto space-y-6">
-      <h2 className="text-xl font-bold text-center">پروفایل کاربر</h2>
-
-      {/* Avatar */}
-      <div className="flex justify-center">
-        <div
-          className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden shadow cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}>
-          {profile.photo ? (
-            <img src={profile.photo} className="w-full h-full object-cover" />
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              بدون عکس
-            </div>
-          )}
+    <div ref={containerRef} className="mx-auto max-w-3xl space-y-6" dir="rtl">
+      <section className="academy-surface overflow-hidden p-0">
+        <div className="bg-[#1c2c29] px-5 py-7 text-white sm:px-8">
+          <p className="academy-kicker !text-[#efaa93]">حساب من</p>
+          <h2 className="mt-2 text-2xl font-black">پروفایل شخصی</h2>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-white/65">اطلاعات تماس و تصویر شما فقط برای مدیریت بهتر مسیر و ارتباط با تیم آکادمی استفاده می‌شود.</p>
         </div>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handlePhotoChange}
-        />
-      </div>
+        <div className="grid gap-7 p-5 sm:p-8 md:grid-cols-[190px_1fr]">
+          <div className="flex flex-col items-center self-start rounded-[28px] bg-[#f3efe7] p-5 text-center">
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="group relative h-32 w-32 overflow-hidden rounded-[32px] border-4 border-white bg-[#dfe4dc] shadow-sm disabled:cursor-wait" aria-label="تغییر تصویر پروفایل">
+              {profile.photo ? <img src={profile.photo} alt="تصویر پروفایل" className="h-full w-full object-cover" /> : <Icon name="User" size={42} className="mx-auto text-[#66736e]" />}
+              <span className="absolute inset-x-2 bottom-2 rounded-full bg-[#1c2c29]/85 px-2 py-1.5 text-[11px] font-bold text-white backdrop-blur">{uploading ? 'در حال آپلود…' : 'تغییر تصویر'}</span>
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
+            <p className="mt-3 text-xs leading-6 text-[#66736e]">JPG، PNG یا WebP<br />حداکثر ۸ مگابایت</p>
+          </div>
 
-      {/* Name */}
-      <input
-        className="input"
-        placeholder="نام"
-        value={profile.name}
-        onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-      />
-
-      {/* Email */}
-      <input
-        className="input"
-        placeholder="ایمیل"
-        value={profile.email}
-        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-      />
-
-      {/* Phone */}
-      <input
-        className="input"
-        placeholder="شماره موبایل"
-        value={profile.phoneNumber}
-        onChange={(e) =>
-          setProfile({ ...profile, phoneNumber: e.target.value })
-        }
-      />
-
-      {/* Instagram */}
-      <input
-        className="input"
-        placeholder="اینستاگرام"
-        value={profile.instagram}
-        onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
-      />
-
-      {/* Location */}
-      <input
-        className="input"
-        placeholder="موقعیت"
-        value={profile.location}
-        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-      />
-
-      {/* Save button */}
-      <button
-        onClick={saveProfile}
-        disabled={loading}
-        className="btn-primary w-full py-3">
-        {loading ? 'در حال ذخیره...' : 'ذخیره پروفایل'}
-      </button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {fields.map((field) => (
+              <label key={field.key} className={field.key === 'name' || field.key === 'location' ? 'sm:col-span-2' : ''}>
+                <span className="mb-2 block text-xs font-bold text-[#52605b]">{field.label}</span>
+                <span className="relative block">
+                  <Icon name={field.icon} size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#87928e]" />
+                  <input type={field.type} dir={field.dir} placeholder={field.placeholder} value={profile[field.key] || ''} onChange={(e) => setProfile({ ...profile, [field.key]: e.target.value })} className={`h-12 w-full rounded-2xl border border-[#dcd8cf] bg-white px-11 text-sm text-[#1c2c29] outline-none transition focus:border-[#df6b52] focus:ring-4 focus:ring-[#df6b52]/10 ${field.dir === 'ltr' ? 'text-left' : 'text-right'}`} />
+                </span>
+              </label>
+            ))}
+            <button onClick={saveProfile} disabled={loading || uploading} className="academy-primary-button mt-2 sm:col-span-2 disabled:cursor-not-allowed disabled:opacity-60">
+              {uploading ? 'منتظر تکمیل آپلود…' : loading ? 'در حال ذخیره…' : 'ذخیره تغییرات'}
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

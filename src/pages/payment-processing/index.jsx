@@ -156,24 +156,24 @@ const PaymentProcessing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="academy-shell academy-grain">
       <ContextualHeader />
 
-      <main className="pt-16 pb-20 lg:pb-8 lg:pl-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="academy-page relative z-10" dir="rtl">
+        <div>
           {/* Progress Indicator */}
           <ProgressIndicator currentStep={2} totalSteps={3} />
 
           {/* Page Header */}
-          <div className="text-center mb-8">
+          <div className="mb-8 text-right">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
                 <Icon name="Shield" size={24} className="text-success" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">پرداخت</h1>
+                <h1 className="academy-title">پرداخت امن</h1>
                 <p className="text-muted-foreground">
-                  Complete your purchase safely and securely
+                  تکمیل خرید از طریق درگاه امن
                 </p>
               </div>
             </div>

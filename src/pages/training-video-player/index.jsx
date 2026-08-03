@@ -413,14 +413,18 @@ const TrainingVideoPlayer = () => {
   if (!currentVideo) return <NoVideoView />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="academy-shell academy-grain">
       <ContextualHeader />
 
-      <div className="pt-16 pb-20 lg:pl-64 lg:pb-0">
-        <div className="lg:flex lg:space-x-6 lg:p-6">
+      <main className="academy-page relative z-10" dir="rtl">
+        <div className="mb-6">
+          <p className="academy-kicker">کتابخانه آموزشی</p>
+          <h2 className="academy-title mt-2">یادگیری را از همان‌جا ادامه بده</h2>
+        </div>
+        <div className="gap-5 lg:flex">
           <div className="lg:flex-1 lg:max-w-4xl">
             {/* پلیر ویدیو */}
-            <div className="aspect-video bg-black lg:rounded-lg overflow-hidden relative z-0">
+            <div className="relative z-0 aspect-video overflow-hidden rounded-[1.5rem] bg-black shadow-[0_24px_60px_rgba(28,44,41,.18)]">
               {/* اگر لینک گوگل درایو بود (کاربر پرو) -> Iframe */}
               {isGoogleDriveLink(currentVideo.videoSrc) ? (
                 <iframe
@@ -443,7 +447,7 @@ const TrainingVideoPlayer = () => {
               )}
             </div>
 
-            <div className="lg:hidden p-4">
+            <div className="academy-surface mt-4 p-4 lg:hidden">
               <VideoDetails
                 title={currentVideo.title}
                 description={currentVideo.description}
@@ -461,7 +465,7 @@ const TrainingVideoPlayer = () => {
               />
             </div>
 
-            <div className="lg:hidden p-4">
+            <div className="academy-surface mt-4 p-4 lg:hidden">
               <CommentsSection
                 comments={comments}
                 onAddComment={handleAddComment}
@@ -470,7 +474,7 @@ const TrainingVideoPlayer = () => {
             </div>
           </div>
 
-          <div className="hidden lg:block lg:w-80 lg:space-y-6">
+          <div className="hidden lg:block lg:w-80 lg:space-y-5">
             <VideoDetails
               title={currentVideo.title}
               description={currentVideo.description}
@@ -508,7 +512,7 @@ const TrainingVideoPlayer = () => {
             onVideoSelect={handleVideoSelect}
           />
         </div>
-      </div>
+      </main>
 
       <BottomTabNavigation />
     </div>

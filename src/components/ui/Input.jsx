@@ -20,7 +20,7 @@ const Input = React.forwardRef(
 
     // Base input classes
     const baseInputClasses =
-      'flex h-10 w-full rounded-md border border-white bg-gray-100 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+      'flex h-12 w-full rounded-2xl border border-[#1c2c29]/12 bg-[#fbfaf7] px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#9aa19d] focus-visible:border-[#638176] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#638176]/10 disabled:cursor-not-allowed disabled:opacity-50';
 
     // Checkbox-specific styles
     if (type === 'checkbox') {
@@ -56,12 +56,12 @@ const Input = React.forwardRef(
 
     // For regular inputs with wrapper structure
     return (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {label && (
           <label
             htmlFor={inputId}
             className={cn(
-              'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+              'text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
               error ? 'text-destructive' : 'text-foreground'
             )}>
             {label}

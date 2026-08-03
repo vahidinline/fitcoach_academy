@@ -1,217 +1,154 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
-import { useNotifications } from 'context/NotificationContext'; // اگر دارید
-import api from 'api/api'; // فرض بر این است که فایل api دارید
+import { academyFeatures } from '../../config/features';
+
+const primaryItems = [
+  { id: 'home', label: 'خانه', path: '/user-dashboard', icon: 'Home' },
+  { id: 'report', label: 'گزارش', path: '/progress-report-submission', icon: 'FileChartColumnIncreasing' },
+  { id: 'learn', label: 'آموزش', path: '/training-video-player', icon: 'PlayCircle' },
+  { id: 'more', label: 'بیشتر', path: null, icon: 'LayoutGrid' },
+];
+
+const secondaryItems = [
+  { label: 'پروفایل و اطلاعات اولیه', path: '/user-basic-data', icon: 'UserRoundPen' },
+  { label: 'سوابق پرداخت', path: '/payment-history', icon: 'CreditCard', enabled: academyFeatures.paymentHistory },
+  { label: 'آزمون دوره', path: '/quiz', icon: 'NotebookPen', enabled: academyFeatures.courseQuiz },
+  { label: 'گواهی دوره', path: '/request-for-certificate', icon: 'Award', enabled: academyFeatures.courseCertificate },
+].filter((item) => item.enabled !== false);
 
 const BottomTabNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('');
+  const [showMore, setShowMore] = useState(false);
 
-  // دریافت اطلاعات محصول کاربر (صرفاً برای آیتم‌هایی که هنوز محدودیت دارند مثل سوابق پرداخت)
-  const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
-  const [productType, setProductType] = useState('');
-
-  const getUserProduct = async () => {
-    try {
-      const res = await api.get(`/subscription/active/${userId}`);
-      if (res && res.data && res.data.subscription) {
-        setProductType(res.data.subscription.productType);
-      } else {
-        setProductType('');
-      }
-    } catch (err) {
-      console.error(err);
-      setProductType('');
-    }
-  };
-
-  useEffect(() => {
-    if (userId) getUserProduct();
-  }, [userId]);
-
-  const navigationItems = [
-    {
-      id: 'dashboard',
-      label: 'پنل کاربری',
-      path: '/user-dashboard',
-      icon: 'Home',
-      badge: null,
-      status: 'active',
-    },
-    {
-      id: 'training',
-      label: 'آموزش ها',
-      path: '/training-video-player',
-      icon: 'Play',
-      badge: null,
-      status: 'active',
-      // productType: 'academy',  <-- این خط حذف شد تا به همه نشان داده شود
-    },
-    {
-      id: 'basic-data',
-      label: 'اطلاعات اولیه',
-      path: '/user-basic-data',
-      icon: 'UserRoundPen',
-      badge: null,
-      status: 'active',
-    },
-    {
-      id: 'progress',
-      label: 'گزارش',
-      path: '/progress-report-submission',
-      icon: 'TrendingUp',
-      badge: null,
-      status: 'activate',
-    },
-    {
-      id: 'payment',
-      label: 'سوابق پرداخت',
-      path: '/payment-history',
-      icon: 'CreditCard',
-      badge: null,
-      status: 'active',
-      productType: 'academy', // این یکی هنوز محدود است (طبق کد قبلی شما)
-    },
-    {
-      id: 'certificate',
-      label: 'سرتیفیکیت',
-      path: '/request-for-certificate',
-      icon: 'ShieldCheck',
-      badge: null,
-      status: 'deActivated',
-    },
-    {
-      id: 'quiz',
-      label: ' آزمون ',
-      path: '/quiz',
-      icon: 'NotebookPen',
-      badge: null,
-    },
-  ];
-
-  const filteredNavigationItems = navigationItems.filter((item) => {
-    // اگر آیتم productType نداشت = همیشه نمایش داده شود
-    if (!item.productType) return true;
-
-    // اگر آیتم productType داشت = فقط وقتی نمایش داده شود که با محصول کاربر یکی باشد
-    return item.productType === productType;
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem('userData');
-    localStorage.removeItem('authToken');
-    navigate('/');
-  };
-
-  useEffect(() => {
-    const currentPath = location.pathname;
-    const activeItem = navigationItems.find(
-      (item) => item.path === currentPath
-    );
-    if (activeItem) {
-      setActiveTab(activeItem.id);
-    }
-  }, [location.pathname]);
-
-  const handleTabClick = (item) => {
-    setActiveTab(item.id);
-    navigate(item.path);
-  };
-
-  if (
-    location.pathname === '/login' ||
-    location.pathname === '/registration-stepper'
-  ) {
+  if (['/', '/login', '/registration-stepper', '/register'].includes(location.pathname)) {
     return null;
   }
 
+  const isActive = (item) =>
+    item.path
+      ? location.pathname.startsWith(item.path)
+      : secondaryItems.some(({ path }) => location.pathname.startsWith(path));
+
+  const go = (item) => {
+    if (item.id === 'more') {
+      setShowMore(true);
+      return;
+    }
+    navigate(item.path);
+  };
+
   return (
     <>
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 right-0 left-0 bg-card border-t border-border z-50 pb-safe safe-area-bottom">
-        <div className="flex items-center justify-around px-4 py-2">
-          {filteredNavigationItems.map((item) => (
-            <button
-              disabled={item.status === 'deActivated'}
-              key={item.id}
-              onClick={() => handleTabClick(item)}
-              className={`flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 animate-spring ${
-                activeTab === item.id
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              style={{ minHeight: '48px' }}>
-              <div className="relative mb-1">
-                <Icon
-                  name={item.icon}
-                  size={20}
-                  className={
-                    activeTab === item.id ? 'text-primary' : 'text-current'
-                  }
-                />
-                {item.badge && (
-                  <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs font-medium truncate max-w-full">
-                {item.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop Sidebar Navigation */}
-      <div className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-card border-r border-border z-50">
-        <div className="flex flex-col h-full">
-          <nav className="flex-1 p-4 mt-16">
-            <div className="space-y-2">
-              {filteredNavigationItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleTabClick(item)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left animate-spring ${
-                    activeTab === item.id
-                      ? 'bg-primary text-primary-foreground shadow-elevation-1'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}>
-                  <div className="relative">
-                    <Icon name={item.icon} size={20} className="text-current" />
-                    {item.badge && (
-                      <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
+      <aside
+        dir="rtl"
+        className="fixed inset-y-0 right-0 z-40 hidden w-72 border-l border-white/10 bg-[#1c2c29] text-[#f7f2e9] lg:flex lg:flex-col">
+        <div className="px-7 pb-8 pt-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#df6b52] shadow-[0_12px_30px_rgba(223,107,82,.25)]">
+              <Icon name="Activity" size={21} />
             </div>
-          </nav>
-
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted">
-              <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                <Icon
-                  name="LogOut"
-                  size={16}
-                  className="text-secondary-foreground"
-                />
-              </div>
-              <button
-                className="flex-1 min-w-0 text-right"
-                onClick={handleLogout}>
-                خروج
-              </button>
+            <div>
+              <p className="text-sm font-black">Shape Up Academy</p>
+              <p className="mt-0.5 text-[10px] text-white/45">مسیر شخصی سلامت شما</p>
             </div>
           </div>
         </div>
-      </div>
-      <div className="lg:hidden h-16" />
+
+        <nav className="flex-1 px-4">
+          <p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-white/35">مسیر من</p>
+          <div className="space-y-1.5">
+            {primaryItems.filter((item) => item.path).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => go(item)}
+                className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-right text-sm font-bold transition ${
+                  isActive(item)
+                    ? 'bg-[#f7f2e9] text-[#1c2c29] shadow-xl'
+                    : 'text-white/60 hover:bg-white/7 hover:text-white'
+                }`}>
+                <Icon name={item.icon} size={19} />
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="mb-3 mt-8 px-3 text-[10px] font-bold tracking-[0.16em] text-white/35">حساب کاربری</p>
+          <div className="space-y-1">
+            {secondaryItems.map((item) => (
+              <button
+                key={item.path}
+                type="button"
+                onClick={() => navigate(item.path)}
+                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-right text-xs font-semibold transition ${
+                  location.pathname.startsWith(item.path)
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/48 hover:bg-white/5 hover:text-white/80'
+                }`}>
+                <Icon name={item.icon} size={17} />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        <div className="m-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs leading-6 text-white/48">
+          تغییر واقعی از تداوم‌های کوچک ساخته می‌شود.
+        </div>
+      </aside>
+
+      <nav
+        dir="rtl"
+        className="fixed inset-x-3 bottom-3 z-50 rounded-[1.4rem] border border-white/80 bg-[#fffdf8]/92 p-1.5 shadow-[0_18px_45px_rgba(28,44,41,.18)] backdrop-blur-xl lg:hidden">
+        <div className="grid grid-cols-4 gap-1">
+          {primaryItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => go(item)}
+              className={`relative flex min-h-[3.4rem] flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold transition ${
+                isActive(item) || (item.id === 'more' && showMore)
+                  ? 'bg-[#1c2c29] text-white'
+                  : 'text-[#7a827e]'
+              }`}>
+              <Icon name={item.icon} size={19} />
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {showMore && (
+        <div className="fixed inset-0 z-[60] flex items-end bg-black/40 p-3 backdrop-blur-sm lg:hidden" onClick={() => setShowMore(false)}>
+          <section
+            dir="rtl"
+            onClick={(event) => event.stopPropagation()}
+            className="w-full rounded-[2rem] bg-[#fffdf8] p-5 shadow-2xl">
+            <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-[#1c2c29]/15" />
+            <h2 className="mb-4 text-lg font-black">بخش‌های بیشتر</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {secondaryItems.map((item) => (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => {
+                    setShowMore(false);
+                    navigate(item.path);
+                  }}
+                  className="flex min-h-24 flex-col items-start justify-between rounded-2xl border border-[#1c2c29]/10 bg-[#f3efe7]/70 p-4 text-right text-xs font-bold text-[#1c2c29]">
+                  <Icon name={item.icon} size={21} className="text-[#df6b52]" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={() => setShowMore(false)} className="academy-secondary-button mt-4 w-full">
+              بستن
+            </button>
+          </section>
+        </div>
+      )}
     </>
   );
 };

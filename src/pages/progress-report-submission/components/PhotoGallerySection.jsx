@@ -31,15 +31,16 @@ const PhotoGallerySection = ({ userId, refreshKey }) => {
   }, [groups]);
 
   if (!groups.length)
-    return <p className="text-gray-500 text-center">هنوز عکسی ثبت نشده است.</p>;
+    return <div className="rounded-[24px] border border-dashed border-[#cfd4cf] bg-[#f8f6f0] p-10 text-center"><p className="font-black text-[#1c2c29]">هنوز مجموعه عکسی ثبت نشده است</p><p className="mt-2 text-xs text-[#87928e]">مجموعه‌های قبلی پس از ثبت نهایی اینجا دیده می‌شوند.</p></div>;
 
   return (
-    <div ref={containerRef} className="space-y-6 mt-8">
+    <div ref={containerRef} className="mt-8 space-y-6">
+      <div><p className="academy-kicker">آرشیو تصویری</p><h4 className="mt-1 font-black text-[#1c2c29]">مجموعه‌های قبلی</h4></div>
       {groups.map((group) => (
         <div
           key={group._id}
-          className="bg-white shadow-md rounded-xl p-4 border border-gray-100">
-          <p className="text-sm text-gray-500 mb-3">
+          className="rounded-[24px] border border-[#e2ded5] bg-[#fbfaf6] p-4">
+          <p className="mb-3 text-xs font-bold text-[#87928e]">
             تاریخ ثبت: {new Date(group.createdAt).toLocaleDateString('fa-IR')}
           </p>
 
@@ -47,10 +48,11 @@ const PhotoGallerySection = ({ userId, refreshKey }) => {
             {group.photos.map((url, idx) => (
               <div
                 key={idx}
-                className="overflow-hidden rounded-xl border border-gray-200">
+                className="overflow-hidden rounded-2xl border border-[#dedad1] bg-white">
                 <img
                   src={url}
-                  className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                  alt={`تصویر پیشرفت ${idx + 1}`}
+                  className="h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
             ))}

@@ -1,31 +1,6 @@
-export default function StepFinish({ data = {}, isEditing, submit }) {
-  const safe = {
-    age: data.age || '—',
-    height: data.height || '—',
-    gender: data.gender || '—',
-    mainGoal: data.mainGoal || '—',
-    activityLevel: data.activityLevel || '—',
-    trainingDays: data.trainingDays || '—',
-  };
-
-  return (
-    <div className="space-y-4 text-center">
-      <h2 className="text-xl font-bold text-green-600">
-        همه‌چیز آماده است! 🎉
-      </h2>
-
-      <div className="p-4 bg-gray-100 rounded-xl text-right text-sm space-y-2">
-        <p>سن: {safe.age}</p>
-        <p>قد: {safe.height}</p>
-        <p>جنسیت: {safe.gender}</p>
-        <p>هدف: {safe.mainGoal}</p>
-        <p>سطح فعالیت: {safe.activityLevel}</p>
-        <p>روزهای تمرین: {safe.trainingDays}</p>
-      </div>
-
-      <button onClick={submit} className="btn-primary mt-5">
-        {isEditing ? 'ذخیره تغییرات' : 'ثبت نهایی'}
-      </button>
-    </div>
-  );
+const labels = { male: 'مرد', female: 'زن', fatloss: 'کاهش وزن', muscle: 'افزایش عضله', recomp: 'بازترکیب بدن', health: 'سلامت عمومی', low: 'کم‌تحرک', medium: 'متوسط', high: 'فعال' };
+export default function StepFinish({ data = {}, isEditing }) {
+  const hasHealthDetails = Boolean(data.hasHealthConsiderations || data.medicalConditions || data.illness || data.medications || data.medication || data.physicalLimitations || data.pain || data.disabilities || data.foodAllergies || data.dietaryRestrictions || data.healthNotes);
+  const rows = [['سن', data.age ? `${data.age} سال` : 'ثبت نشده'], ['قد', data.height ? `${data.height} سانتی‌متر` : 'ثبت نشده'], ['جنسیت', labels[data.gender] || 'ثبت نشده'], ['هدف اصلی', labels[data.mainGoal] || 'ثبت نشده'], ['سطح فعالیت', labels[data.activityLevel] || 'ثبت نشده'], ['روزهای تمرین', data.trainingDays !== undefined ? `${data.trainingDays} روز در هفته` : 'ثبت نشده'], ['ملاحظات سلامتی و غذایی', hasHealthDetails ? 'ثبت شده؛ در اختیار مربی قرار می‌گیرد' : 'مورد خاصی اعلام نشده']];
+  return <div className="space-y-6"><div className="rounded-[28px] bg-[#1c2c29] p-6 text-white"><span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#df6b52] text-xl">✓</span><h3 className="mt-4 text-xl font-black">{isEditing ? 'تغییرات آماده ذخیره است' : 'مسیر شما آماده شروع است'}</h3><p className="mt-2 text-sm leading-7 text-white/65">اطلاعات زیر را مرور کنید؛ در صورت نیاز با دکمه قبلی آن‌ها را اصلاح کنید.</p></div><div className="grid gap-3 sm:grid-cols-2">{rows.map(([label,value]) => <div key={label} className="rounded-2xl border border-[#e2ded5] bg-[#fbfaf6] p-4"><span className="block text-[11px] font-bold text-[#87928e]">{label}</span><strong className="mt-1 block text-sm text-[#1c2c29]">{value}</strong></div>)}</div></div>;
 }

@@ -8,6 +8,7 @@ import GuideModal from './components/GuideModal';
 import Header from './components/Header';
 import QuizSection from './components/QuizSection';
 import SuccessModal from './components/SuccessModal';
+import ContextualHeader from 'components/ui/ContextualHeader';
 
 export default function Quiz() {
   const [quiz, setQuiz] = useState([]);
@@ -332,9 +333,14 @@ export default function Quiz() {
 
   // MAIN UI
   return (
-    <div
-      dir="rtl"
-      className="max-w-xl mx-auto bg-white rounded-2xl shadow p-6 mt-20">
+    <div className="academy-shell academy-grain" dir="rtl">
+      <ContextualHeader />
+      <main className="academy-page relative z-10">
+      <div className="academy-surface mx-auto max-w-2xl p-5 sm:p-8">
+      <div className="mb-6">
+        <p className="academy-kicker">ارزیابی یادگیری</p>
+        <h2 className="academy-title mt-2">آزمون دوره</h2>
+      </div>
       <Header
         quizStarted={quizStarted}
         formatTime={formatTime}
@@ -369,6 +375,8 @@ export default function Quiz() {
           امتیاز شما: {score}
         </div>
       )}
+      </div>
+      </main>
       <BottomTabNavigation />
     </div>
   );

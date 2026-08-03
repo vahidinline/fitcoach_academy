@@ -131,27 +131,30 @@ export default function CertificateIndex({ endpoint }) {
         return 'صادر شده';
       case 'rejected':
         return 'رد شده';
-      case 'delivered':
-        return 'تحویل داده شده';
       default:
         return 'unknown';
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="academy-shell academy-grain">
       <ContextualHeader />
 
-      <main className="pt-16 pb-20 lg:pb-8 lg:pl-64">
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="academy-page relative z-10" dir="rtl">
+        <div>
+          <div className="mb-7">
+            <p className="academy-kicker">دستاورد مسیر</p>
+            <h2 className="academy-title mt-2">گواهی‌های من</h2>
+            <p className="mt-3 text-sm text-[#68716d]">وضعیت صدور گواهی‌ها را ببین یا درخواست جدید ثبت کن.</p>
+          </div>
           {/* Progress Indicator */}
           {/* <ProgressIndicator currentStep={step} totalSteps={3} /> */}
           {status === 'loading' && <p>در حال دریافت سرتیفیکت...</p>}
-          <div className="flex flex-row mb-4 gap-4 flex-wrap">
+          <div className="mb-5 grid gap-4 md:grid-cols-2">
             {certificateData?.map((cert) => (
               <div
                 key={cert._id}
-                className="card bg-base-100 image-full w-96 shadow-sm">
+                className="card image-full w-full overflow-hidden rounded-[1.5rem] bg-[#fffdf8] shadow-[0_18px_45px_rgba(28,44,41,.1)]">
                 <figure>
                   <img src={CertTemp} alt="cert" />
                 </figure>
@@ -204,14 +207,14 @@ export default function CertificateIndex({ endpoint }) {
               </div>
             </div>
           )}
-          <p className="text-green-600  p-4 rounded-md">
+          <div className="academy-surface mt-5 p-5 text-[#547466]">
             <SelectCert
               handleSelect={handleSelect}
               clientId={clientId}
               setType={setType}
               type={type}
             />
-          </p>
+          </div>
         </div>
       </main>
       <BottomTabNavigation />

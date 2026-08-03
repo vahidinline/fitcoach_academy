@@ -1,17 +1,11 @@
-export function canSubmitToday() {
-  const now = new Date();
+export function canSubmitToday(date = new Date()) {
+  return date.getDay() === 1;
+}
 
-  // 0 = Sunday, 1 = Monday, 2 = Tuesday...
-  const day = now.getDay();
-
-  // Monday = 1
-  if (day !== 1) return false;
-
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-
-  // Allow until 23:59
-  if (hours < 24) return true;
-
-  return false;
+export function getNextMondayStart(date = new Date()) {
+  const nextMonday = new Date(date);
+  const daysUntilMonday = (8 - date.getDay()) % 7 || 7;
+  nextMonday.setDate(date.getDate() + daysUntilMonday);
+  nextMonday.setHours(0, 0, 0, 0);
+  return nextMonday;
 }

@@ -60,8 +60,8 @@ const ProgressTracker = ({
     if (completedVideos === 1) {
       newAchievements.push({
         id: 'first_video',
-        title: 'First Steps',
-        description: 'Completed your first workout video!',
+        title: 'اولین قدم',
+        description: 'اولین ویدیوی آموزشی را کامل دیدید.',
         icon: 'Trophy',
         color: 'text-warning',
       });
@@ -71,8 +71,8 @@ const ProgressTracker = ({
     if (completedVideos === 5) {
       newAchievements.push({
         id: 'five_videos',
-        title: 'Getting Started',
-        description: 'Completed 5 workout videos!',
+        title: 'شروع قدرتمند',
+        description: '۵ ویدیوی آموزشی را کامل دیدید.',
         icon: 'Award',
         color: 'text-success',
       });
@@ -81,8 +81,8 @@ const ProgressTracker = ({
     if (completedVideos === 10) {
       newAchievements.push({
         id: 'ten_videos',
-        title: 'Dedicated Learner',
-        description: 'Completed 10 workout videos!',
+        title: 'یادگیری پیوسته',
+        description: '۱۰ ویدیوی آموزشی را کامل دیدید.',
         icon: 'Star',
         color: 'text-primary',
       });
@@ -126,13 +126,13 @@ const ProgressTracker = ({
   return (
     <>
       <div
-        className={`bg-card rounded-lg border border-border p-6 ${className}`}>
+        dir="rtl" className={`academy-surface p-5 ${className}`}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-card-foreground">Your Progress</h3>
+          <h3 className="font-black text-[#1c2c29]">پیشرفت تماشا</h3>
           {isCompleted && (
             <div className="flex items-center space-x-2 text-success">
               <Icon name="CheckCircle" size={20} />
-              <span className="text-sm font-medium">Completed</span>
+              <span className="text-sm font-medium">تکمیل‌شده</span>
             </div>
           )}
         </div>
@@ -193,8 +193,7 @@ const ProgressTracker = ({
               className="w-full"
               iconName="Play"
               iconPosition="left">
-              ادامه مشاهده
-              {formatTime(watchTime)}
+              ادامه از {formatTime(watchTime)}
             </Button>
           </div>
         )}

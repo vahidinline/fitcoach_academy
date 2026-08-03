@@ -76,18 +76,19 @@ const PaymentHistory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background font-vazir">
+    <div className="academy-shell academy-grain font-vazir">
       <ContextualHeader />
 
-      <main className="pt-16 pb-20 lg:pl-64 lg:pb-6">
-        <div className="p-6 space-y-6">
+      <main className="academy-page relative z-10" dir="rtl">
+        <div className="space-y-5">
           {/* =================== TITLE =================== */}
-          <h2 className="text-2xl font-bold text-right text-gray-800 mb-4">
-            سوابق پرداخت
-          </h2>
+          <div className="mb-6">
+            <p className="academy-kicker">مالی و اشتراک</p>
+            <h2 className="academy-title mt-2">سوابق پرداخت</h2>
+          </div>
 
           {/* =================== TOTAL PAID =================== */}
-          <div className="backdrop-blur-xl bg-green-50/60 border border-green-300/20 shadow-lg p-4 rounded-xl text-right">
+          <div className="academy-surface bg-[#dce6df]/70 p-5 text-right">
             <p className="text-gray-600 text-sm">جمع کل پرداخت‌های موفق</p>
             <p className="text-2xl font-bold text-green-600 mt-1">
               {toFa(totalPaid)} تومان
@@ -129,12 +130,10 @@ const PaymentHistory = () => {
                 key={index}
                 ref={(el) => (cardsRef.current[index] = el)}
                 className="
-                  backdrop-blur-2xl
-                  bg-white/40
-                  shadow-xl
-                  shadow-black/10
-                  border border-white/50
-                  rounded-2xl
+                  bg-[#fffdf8]/90
+                  shadow-[0_14px_40px_rgba(28,44,41,.06)]
+                  border border-[#1c2c29]/10
+                  rounded-[1.5rem]
                   p-5
                   text-right relative
                 ">

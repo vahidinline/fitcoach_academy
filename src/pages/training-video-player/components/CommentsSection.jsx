@@ -26,20 +26,20 @@ const CommentsSection = ({
     const commentDate = new Date(date);
     const diffInHours = Math.floor((now - commentDate) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return `${Math.floor(diffInHours / 168)}w ago`;
+    if (diffInHours < 1) return 'همین حالا';
+    if (diffInHours < 24) return `${diffInHours} ساعت پیش`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} روز پیش`;
+    return `${Math.floor(diffInHours / 168)} هفته پیش`;
   };
 
   const displayedComments = showAllComments ? comments : comments.slice(0, 3);
 
   return (
-    <div className={`bg-card rounded-lg border border-border ${className}`}>
+    <div dir="rtl" className={`academy-surface overflow-hidden p-0 ${className}`}>
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-card-foreground">
-            Comments ({comments.length})
+            گفت‌وگو درباره جلسه ({comments.length})
           </h3>
           <Icon name="MessageCircle" size={20} className="text-muted-foreground" />
         </div>
@@ -53,7 +53,7 @@ const CommentsSection = ({
             <div className="flex-1">
               <Input
                 type="text"
-                placeholder="Add a comment..."
+                placeholder="دیدگاه یا سؤال خود را بنویسید…"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="mb-2"
@@ -65,7 +65,7 @@ const CommentsSection = ({
                   size="sm"
                   disabled={!newComment.trim()}
                 >
-                  Post Comment
+                  ارسال دیدگاه
                 </Button>
               </div>
             </div>
@@ -99,7 +99,7 @@ const CommentsSection = ({
                   </span>
                   {comment.isCoach && (
                     <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium">
-                      Coach
+                      مربی
                     </span>
                   )}
                   <span className="text-xs text-muted-foreground">
@@ -128,7 +128,7 @@ const CommentsSection = ({
                   </button>
                   
                   <button className="text-xs text-muted-foreground hover:text-card-foreground animate-spring">
-                    Reply
+                    پاسخ
                   </button>
                 </div>
 
@@ -158,7 +158,7 @@ const CommentsSection = ({
                             </span>
                             {reply.isCoach && (
                               <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium">
-                                Coach
+                                مربی
                               </span>
                             )}
                             <span className="text-xs text-muted-foreground">
@@ -189,8 +189,8 @@ const CommentsSection = ({
             className="w-full"
           >
             {showAllComments 
-              ? 'Show Less Comments' 
-              : `Show ${comments.length - 3} More Comments`
+              ? 'نمایش کمتر'
+              : `نمایش ${comments.length - 3} دیدگاه دیگر`
             }
           </Button>
         </div>

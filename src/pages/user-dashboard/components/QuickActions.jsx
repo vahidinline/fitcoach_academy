@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
+import { academyFeatures } from '../../../config/features';
 
 const QuickActions = () => {
   const navigate = useNavigate();
@@ -31,7 +32,8 @@ const QuickActions = () => {
       icon: 'CreditCard',
       color: 'text-success',
       bgColor: 'bg-success/10',
-      action: () => navigate('/payment-processing', { state: { tab: 'history' } })
+      action: () => navigate('/payment-processing', { state: { tab: 'history' } }),
+      enabled: academyFeatures.paymentHistory,
     },
     {
       id: 'settings',
@@ -49,7 +51,7 @@ const QuickActions = () => {
       <h3 className="text-lg font-semibold text-card-foreground mb-6">Quick Actions</h3>
       
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickActions.map((action) => (
+        {quickActions.filter((action) => action.enabled !== false).map((action) => (
           <button
             key={action.id}
             onClick={action.action}

@@ -1,266 +1,146 @@
-// components/ui/Select.jsx - Shadcn style Select
-import React, { useState } from 'react';
-import { ChevronDown, Check, Search, X } from 'lucide-react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Check, ChevronDown, LoaderCircle, Search, X } from 'lucide-react';
 import { cn } from '../../utils/cn';
-import Button from './Button';
-import Input from './Input';
 
-const Select = React.forwardRef(
-  (
-    {
-      className,
-      options = [],
-      value,
-      defaultValue,
-      placeholder = 'یک گزینه را انتخاب کنید',
-      multiple = false,
-      disabled = false,
-      required = false,
-      label,
-      description,
-      error,
-      searchable = false,
-      clearable = false,
-      loading = false,
-      id,
-      name,
-      onChange,
-      onOpenChange,
-      ...props
-    },
-    ref
-  ) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+const Select = React.forwardRef(function Select(
+  {
+    className,
+    triggerClassName,
+    menuClassName,
+    options = [],
+    value,
+    defaultValue,
+    placeholder = 'یک گزینه را انتخاب کنید',
+    multiple = false,
+    disabled = false,
+    required = false,
+    label,
+    description,
+    error,
+    searchable = false,
+    clearable = false,
+    loading = false,
+    id,
+    name,
+    onChange,
+    onOpenChange,
+    ...props
+  },
+  forwardedRef,
+) {
+  const generatedId = useId();
+  const selectId = id || `select-${generatedId.replace(/:/g, '')}`;
+  const rootRef = useRef(null);
+  const searchRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [internalValue, setInternalValue] = useState(defaultValue ?? (multiple ? [] : ''));
+  const selectedValue = value !== undefined ? value : internalValue;
 
-    // Generate unique ID if not provided
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const filteredOptions = useMemo(() => {
+    const query = searchTerm.trim().toLocaleLowerCase('fa');
+    if (!searchable || !query) return options;
+    return options.filter((option) => `${option.label} ${option.value}`.toLocaleLowerCase('fa').includes(query));
+  }, [options, searchable, searchTerm]);
 
-    // Filter options based on search
-    const filteredOptions =
-      searchable && searchTerm
-        ? options.filter(
-            (option) =>
-              option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (option.value &&
-                option.value
-                  .toString()
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase()))
-          )
-        : options;
+  const selectedOptions = multiple
+    ? options.filter((option) => Array.isArray(selectedValue) && selectedValue.includes(option.value))
+    : options.filter((option) => option.value === selectedValue);
+  const hasValue = multiple ? selectedOptions.length > 0 : selectedOptions.length === 1;
+  const displayValue = hasValue
+    ? multiple && selectedOptions.length > 1 ? `${selectedOptions.length} گزینه انتخاب شده` : selectedOptions[0].label
+    : placeholder;
 
-    // Get selected option(s) for display
-    const getSelectedDisplay = () => {
-      if (!value) return placeholder;
+  const setOpen = (nextOpen) => {
+    if (disabled || loading) return;
+    setIsOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+    if (!nextOpen) setSearchTerm('');
+  };
 
-      if (multiple) {
-        const selectedOptions = options.filter((opt) =>
-          value.includes(opt.value)
-        );
-        if (selectedOptions.length === 0) return placeholder;
-        if (selectedOptions.length === 1) return selectedOptions[0].label;
-        return `${selectedOptions.length} items selected`;
-      }
-
-      const selectedOption = options.find((opt) => opt.value === value);
-      return selectedOption ? selectedOption.label : placeholder;
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
     };
-
-    const handleToggle = () => {
-      if (!disabled) {
-        const newIsOpen = !isOpen;
-        setIsOpen(newIsOpen);
-        onOpenChange?.(newIsOpen);
-        if (!newIsOpen) {
-          setSearchTerm('');
-        }
-      }
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
     };
-
-    const handleOptionSelect = (option) => {
-      if (multiple) {
-        const newValue = value || [];
-        const updatedValue = newValue.includes(option.value)
-          ? newValue.filter((v) => v !== option.value)
-          : [...newValue, option.value];
-        onChange?.(updatedValue);
-      } else {
-        onChange?.(option.value);
-        setIsOpen(false);
-        onOpenChange?.(false);
-      }
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    if (searchable) requestAnimationFrame(() => searchRef.current?.focus());
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
     };
+  }, [isOpen, searchable]);
 
-    const handleClear = (e) => {
-      e.stopPropagation();
-      onChange?.(multiple ? [] : '');
-    };
+  const commitValue = (nextValue) => {
+    if (value === undefined) setInternalValue(nextValue);
+    onChange?.(nextValue);
+  };
 
-    const handleSearchChange = (e) => {
-      setSearchTerm(e.target.value);
-    };
+  const selectOption = (option) => {
+    if (option.disabled) return;
+    if (multiple) {
+      const current = Array.isArray(selectedValue) ? selectedValue : [];
+      commitValue(current.includes(option.value) ? current.filter((item) => item !== option.value) : [...current, option.value]);
+    } else {
+      commitValue(option.value);
+      setOpen(false);
+    }
+  };
 
-    const isSelected = (optionValue) => {
-      if (multiple) {
-        return value?.includes(optionValue) || false;
-      }
-      return value === optionValue;
-    };
-
-    const hasValue = multiple
-      ? value?.length > 0
-      : value !== undefined && value !== '';
-
-    return (
-      <div dir="rtl" className={cn('relative', className)}>
-        {label && (
-          <label
-            htmlFor={selectId}
-            className={cn(
-              'text-sm font-medium text-right leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block border-t pt-2 pb-1',
-              error ? 'text-destructive' : 'text-foreground'
-            )}>
-            {label}
-            {required && <span className="text-destructive ml-1">*</span>}
-          </label>
+  return (
+    <div ref={rootRef} dir="rtl" className={cn('relative w-full', className)}>
+      {label && <label id={`${selectId}-label`} className={cn('mb-2 block text-xs font-bold text-[#52605b]', error && 'text-red-600')}>{label}{required && <span className="mr-1 text-[#df6b52]">*</span>}</label>}
+      <button
+        ref={forwardedRef}
+        id={selectId}
+        type="button"
+        disabled={disabled || loading}
+        aria-labelledby={label ? `${selectId}-label` : undefined}
+        aria-controls={`${selectId}-menu`}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        onClick={() => setOpen(!isOpen)}
+        className={cn(
+          'flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl border bg-[#fbfaf6] px-4 text-right text-sm text-[#1c2c29] outline-none transition duration-200',
+          'hover:border-[#b7bdb9] focus-visible:border-[#df6b52] focus-visible:ring-4 focus-visible:ring-[#df6b52]/10',
+          isOpen && 'border-[#df6b52] bg-white ring-4 ring-[#df6b52]/10',
+          !hasValue && 'text-[#87928e]',
+          error && 'border-red-400 bg-red-50/40 focus-visible:border-red-500 focus-visible:ring-red-100',
+          (disabled || loading) && 'cursor-not-allowed bg-[#efede7] opacity-60',
+          triggerClassName,
         )}
+        {...props}>
+        <span className="min-w-0 flex-1 truncate">{displayValue}</span>
+        <span className="flex shrink-0 items-center gap-2 text-[#66736e]">
+          {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
+          {clearable && hasValue && !loading && <span role="button" tabIndex={-1} aria-label="پاک کردن انتخاب" onClick={(event) => { event.stopPropagation(); commitValue(multiple ? [] : ''); }} className="rounded-full p-1 transition hover:bg-[#e6e2da]"><X className="h-3.5 w-3.5" /></span>}
+          <span className={cn('flex h-7 w-7 items-center justify-center rounded-xl bg-[#e9e6de] transition', isOpen && 'rotate-180 bg-[#1c2c29] text-white')}><ChevronDown className="h-4 w-4" /></span>
+        </span>
+      </button>
 
-        <div className="relative">
-          <button
-            ref={ref}
-            id={selectId}
-            type="button"
-            className={cn(
-              'flex h-10 w-full items-center justify-between rounded-md border border-input bg-gray-100 text-black px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-              error && 'border-destructive focus:ring-destructive',
-              !hasValue && 'text-muted-foreground'
-            )}
-            onClick={handleToggle}
-            disabled={disabled}
-            aria-expanded={isOpen}
-            aria-haspopup="listbox"
-            {...props}>
-            <span className="truncate">{getSelectedDisplay()}</span>
+      {name && <select className="sr-only" name={name} value={selectedValue ?? ''} onChange={() => {}} tabIndex={-1} multiple={multiple} required={required} aria-hidden="true">{!multiple && <option value="">{placeholder}</option>}{options.map((option) => <option key={String(option.value)} value={option.value}>{option.label}</option>)}</select>}
 
-            <div className="flex items-center gap-1">
-              {loading && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-              )}
-
-              {clearable && hasValue && !loading && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={handleClear}>
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 transition-transform',
-                  isOpen && 'rotate-180'
-                )}
-              />
-            </div>
-          </button>
-
-          {/* Hidden native select for form submission */}
-          <select
-            name={name}
-            value={value || ''}
-            onChange={() => {}} // Controlled by our custom logic
-            className="sr-only"
-            tabIndex={-1}
-            multiple={multiple}
-            required={required}>
-            <option value="">Select...</option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Dropdown */}
-          {isOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white text-black border border-border rounded-md shadow-md">
-              {searchable && (
-                <div className="p-2 border-b">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search options..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="py-1 max-h-60 overflow-auto">
-                {filteredOptions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
-                    {searchTerm ? 'No options found' : 'No options available'}
-                  </div>
-                ) : (
-                  filteredOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className={cn(
-                        'relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground',
-                        isSelected(option.value) &&
-                          'bg-primary text-primary-foreground',
-                        option.disabled && 'pointer-events-none opacity-50'
-                      )}
-                      onClick={() =>
-                        !option.disabled && handleOptionSelect(option)
-                      }>
-                      <span className="flex-1">{option.label}</span>
-                      {multiple && isSelected(option.value) && (
-                        <Check className="h-4 w-4" />
-                      )}
-                      {option.description && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {option.description}
-                        </span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+      {isOpen && <div id={`${selectId}-menu`} role="listbox" aria-multiselectable={multiple || undefined} className={cn('absolute inset-x-0 top-[calc(100%+8px)] z-[100] overflow-hidden rounded-[20px] border border-[#d8d4cb] bg-white p-2 shadow-[0_18px_50px_rgba(28,44,41,0.16)]', menuClassName)}>
+        {searchable && <div className="relative mb-2"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#87928e]" /><input ref={searchRef} value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="جست‌وجو…" className="h-10 w-full rounded-xl bg-[#f3efe7] pr-9 pl-3 text-sm outline-none focus:ring-2 focus:ring-[#df6b52]/20" /></div>}
+        <div className="max-h-64 space-y-1 overflow-y-auto overscroll-contain">
+          {filteredOptions.length ? filteredOptions.map((option) => {
+            const selected = multiple ? Array.isArray(selectedValue) && selectedValue.includes(option.value) : selectedValue === option.value;
+            return <button key={String(option.value)} type="button" role="option" aria-selected={selected} disabled={option.disabled} onClick={() => selectOption(option)} className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-sm transition hover:bg-[#f3efe7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#df6b52]/30', selected && 'bg-[#1c2c29] text-white hover:bg-[#1c2c29]', option.disabled && 'cursor-not-allowed opacity-40')}>
+              <span className="min-w-0 flex-1"><span className="block font-bold">{option.label}</span>{option.description && <span className={cn('mt-0.5 block text-[11px] text-[#87928e]', selected && 'text-white/60')}>{option.description}</span>}</span>
+              <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#cfd4cf]', selected && 'border-[#df6b52] bg-[#df6b52] text-white')}>{selected && <Check className="h-3 w-3" />}</span>
+            </button>;
+          }) : <p className="px-3 py-6 text-center text-sm text-[#87928e]">گزینه‌ای پیدا نشد.</p>}
         </div>
-
-        {description && !error && (
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
-        )}
-
-        {error && <p className="text-sm text-destructive mt-1">{error}</p>}
-      </div>
-    );
-  }
-);
+      </div>}
+      {description && !error && <p className="mt-2 text-xs leading-6 text-[#87928e]">{description}</p>}
+      {error && <p className="mt-2 text-xs font-bold text-red-600">{error}</p>}
+    </div>
+  );
+});
 
 Select.displayName = 'Select';
-
 export default Select;

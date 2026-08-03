@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import api from 'api/api';
 import PhotoGallerySection from './PhotoGallerySection'; // اگر هنوز اینو نداری فعلاً کامنت کن
+import Icon from '../../../components/AppIcon';
 
 const PhotoUploadSection = ({ maxPhotos = 3 }) => {
   const containerRef = useRef(null);
@@ -175,13 +176,15 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
 
   return (
     <div ref={containerRef} className="space-y-6">
-      <div>
-        <h3 className="text-lg font-bold text-gray-800">آپلود تصاویر پیشرفت</h3>
-        <p className="text-sm text-gray-600">
+      <header className="flex items-start gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#1c2c29] text-white"><Icon name="Images" size={21} /></span>
+        <div><p className="academy-kicker">ثبت تصویری مسیر</p>
+        <h3 className="mt-1 text-xl font-black text-[#1c2c29]">تصاویر پیشرفت</h3>
+        <p className="mt-2 text-sm leading-7 text-[#66736e]">
           لطفاً حداکثر {maxPhotos} تصویر (مثلاً روبرو، نیم‌رخ و پشت) را برای این
           نوبت آپلود کنید.
-        </p>
-      </div>
+        </p></div>
+      </header>
 
       {/* Upload zone */}
       <div
@@ -190,8 +193,8 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current && fileInputRef.current.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition
-          ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+        className={`flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-[28px] border-2 border-dashed p-6 text-center transition
+          ${dragActive ? 'border-[#df6b52] bg-[#fff4ef]' : 'border-[#cfd4cf] bg-[#f8f6f0] hover:border-[#87928e]'}
         `}>
         <input
           type="file"
@@ -201,29 +204,31 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
           className="hidden"
           onChange={handleFileInput}
         />
-        <p className="text-gray-700 mb-2">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#df6b52] shadow-sm"><Icon name="ImagePlus" size={25} /></span>
+        <p className="mb-2 mt-4 text-sm font-black text-[#1c2c29]">
           برای انتخاب چند عکس کلیک کنید یا آن‌ها را بکشید و رها کنید
         </p>
-        <p className="text-xs text-gray-500">
-          {photos.length} / {maxPhotos}
+        <p className="text-xs text-[#87928e]">
+          JPG، PNG یا WebP — حداکثر ۱۰ مگابایت برای هر تصویر
         </p>
+        <span className="mt-4 rounded-full bg-[#1c2c29] px-3 py-1 text-[11px] font-bold text-white">{photos.length} از {maxPhotos} تصویر</span>
       </div>
 
       {/* Local preview */}
       {photos.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="relative rounded-lg border overflow-hidden">
+              className="group relative overflow-hidden rounded-[22px] border border-[#dedad1] bg-[#f3efe7]">
               <img
                 src={photo.url || photo.preview}
-                alt="uploaded"
-                className="w-full h-48 object-cover"
+                alt="پیش‌نمایش تصویر پیشرفت"
+                className="h-52 w-full object-cover"
               />
 
               {photo.status === 'uploading' && (
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1c2c29]/75 text-white backdrop-blur-sm">
                   <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <p className="mt-2 text-sm">
                     {Math.round(uploadProgress[photo.id] || 0)}%
@@ -232,7 +237,7 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
               )}
 
               {photo.status === 'failed' && (
-                <p className="absolute bottom-0 inset-x-0 bg-red-600 text-white text-xs text-center py-1">
+                <p className="absolute inset-x-0 bottom-0 bg-red-600 py-2 text-center text-xs font-bold text-white">
                   خطا در آپلود
                 </p>
               )}
@@ -240,8 +245,9 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
               <button
                 type="button"
                 onClick={() => removePhoto(photo.id)}
-                className="absolute top-2 left-2 bg-black/60 text-white rounded-full px-2 py-1 text-xs">
-                حذف
+                aria-label="حذف تصویر"
+                className="absolute left-2 top-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-[#1c2c29] shadow transition hover:bg-red-600 hover:text-white">
+                <Icon name="Trash2" size={16} />
               </button>
             </div>
           ))}
@@ -253,11 +259,11 @@ const PhotoUploadSection = ({ maxPhotos = 3 }) => {
         type="button"
         onClick={handleSubmitGroup}
         disabled={!allCompleted}
-        className={`w-full py-3 rounded-lg font-semibold text-white transition
+        className={`w-full rounded-2xl py-3.5 font-bold text-white transition
           ${
             allCompleted
-              ? 'bg-blue-600 hover:bg-blue-700'
-              : 'bg-gray-300 cursor-not-allowed'
+              ? 'bg-[#1c2c29] hover:bg-[#263c38]'
+              : 'cursor-not-allowed bg-[#c8cbc6]'
           }
         `}>
         ثبت نهایی این سری عکس‌ها
