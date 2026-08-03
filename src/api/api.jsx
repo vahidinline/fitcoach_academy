@@ -2,9 +2,13 @@
 import axios from 'axios';
 
 const api = axios.create({
-  //baseURL: `https://server.azishafiei.com`,
-  baseURL: 'http://localhost:8080',
+  baseURL: (import.meta.env.VITE_API_URL || 'https://server.azishafiei.com').replace(
+    /\/$/,
+    '',
+  ),
+  //baseURL: 'http://localhost:8080',
   timeout: 120000,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },

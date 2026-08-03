@@ -65,7 +65,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build --sourcemap",
+    "build": "vite build --sourcemap && node scripts/verify-build.mjs",
     "serve": "vite preview",
     "dev": "vite"
   },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../components/AppIcon';
 import { useAuth } from '../../components/ui/AuthenticationGuard';
@@ -24,6 +24,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendIn, setResendIn] = useState(0);
+  const otpRequestInFlight = useRef(false);
 
   useEffect(() => {
     if (resendIn <= 0) return undefined;
@@ -53,12 +54,17 @@ const Login = () => {
   };
 
   const requestOtp = async ({ isResend = false } = {}) => {
+    // React state updates are asynchronous; this synchronous lock also blocks
+    // rapid double taps before the disabled state is rendered on mobile.
+    if (otpRequestInFlight.current) return;
+
     const validationError = validateIdentifier();
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    otpRequestInFlight.current = true;
     setIsLoading(true);
     setError('');
     try {
@@ -83,6 +89,7 @@ const Login = () => {
         ),
       );
     } finally {
+      otpRequestInFlight.current = false;
       setIsLoading(false);
     }
   };
