@@ -57,7 +57,8 @@ const AuthenticationGuard = ({ children }) => {
 
   const login = async (userData) => {
     try {
-      const token = userData.token || `real-jwt-token-${Date.now()}`; // Replace if token is returned from backend
+      const token = userData.token;
+      if (!token) throw new Error('Authentication token is missing');
 
       // Store real user data
       localStorage.setItem('authToken', token);

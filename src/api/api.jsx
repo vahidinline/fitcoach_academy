@@ -2,24 +2,43 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: `https://aziserver.azurewebsites.net/`,
-
-  //baseURL: 'http://localhost:8080',
-  timeout: 20000,
+  //baseURL: `https://server.azishafiei.com`,
+  baseURL: 'http://localhost:8080',
+  timeout: 120000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor to add auth key if provided
+// Attach the token returned by Academy OTP verification.
 api.interceptors.request.use(
   (config) => {
-    if (config.authKey) {
-      config.headers['Authorization'] = `Bearer ${config.authKey}`;
+    const token = config.authKey || localStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     return config;
   },
   (error) => Promise.reject(error),
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes('academyAuth')
+    ) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      if (window.location.pathname !== '/login')
+        window.location.assign('/login');
+    }
+    return Promise.reject(error);
+  },
 );
 
 export default api;

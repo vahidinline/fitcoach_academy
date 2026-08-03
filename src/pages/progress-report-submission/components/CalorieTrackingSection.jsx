@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
-import { canSubmitToday } from 'utils/canSubmitReport';
 import { useNavigate } from 'react-router-dom';
+import { normalizeDigits } from 'utils/persianNumbers';
+import { validateReport } from 'utils/reportValidation';
+import { canSubmitToday } from 'utils/canSubmitReport';
 
 const generateOptions = (step = 5) => {
   const arr = [];
@@ -20,31 +22,14 @@ const CalorieTrackingSection = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [createdReport, setCreatedReport] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [reportPermission, setReportPermission] = useState(null);
   const [remaining, setRemaining] = useState(null);
-  const [periodType, setPeriodType] = useState('weekly');
-  const [hasSentToday, setHasSentToday] = useState(false);
+  const periodType = 'weekly';
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const isMonday = canSubmitToday();
+  const [errors, setErrors] = useState({});
+  const [uploadsPending, setUploadsPending] = useState(false);
   const navigate = useNavigate();
-  useEffect(() => {
-    async function check() {
-      const res = await api.get(`/report/my?userId=${userId}`);
-      const list = res.data.reports || [];
-
-      if (list.length > 0) {
-        const last = new Date(list[0].date);
-        const now = new Date();
-
-        if (
-          last.getFullYear() === now.getFullYear() &&
-          last.getMonth() === now.getMonth() &&
-          last.getDate() === now.getDate()
-        ) {
-          setHasSentToday(true);
-        }
-      }
-    }
-
-    check();
-  }, []);
   const [fields, setFields] = useState({
     avgCalories: '',
     proteinPercent: 30,
@@ -57,23 +42,6 @@ const CalorieTrackingSection = () => {
   });
 
   const macroOptions = generateOptions(5);
-  const allowed = canSubmitToday();
-
-  if (!allowed) {
-    return (
-      <div dir="rtl" className="p-4 text-center">
-        <h2 className="text-xl font-bold text-red-600 mb-2">
-          ⛔ شما نمیتوانید گزارش ارسال کنید
-        </h2>
-        <p className="text-gray-700">
-          شما فقط در روزهای دوشنبه و تا ساعت ۱۲ شب می‌توانید گزارش ارسال کنید.
-        </p>
-        {canSubmitToday() && <ReportCountdown />}
-        {/* <NextReportTimer /> */}
-      </div>
-    );
-  }
-
   const computePeriod = () => {
     const end = new Date();
     const start = new Date();
@@ -91,16 +59,18 @@ const CalorieTrackingSection = () => {
     e.preventDefault();
     if (submitting) return;
 
+    if (uploadsPending) {
+      setErrors({ extraPhotos: 'تا پایان آپلود تصاویر صبر کنید یا تصویر ناموفق را دوباره ارسال کنید.' });
+      return;
+    }
+
     setSubmitting(true);
     setSuccessMessage(null);
 
-    const macroSum =
-      Number(fields.proteinPercent) +
-      Number(fields.carbsPercent) +
-      Number(fields.fatsPercent);
-
-    if (macroSum !== 100) {
-      alert('مجموع درصد باید ۱۰۰ باشد');
+    const validation = validateReport(fields, extraPhotos);
+    setErrors(validation.errors);
+    if (!validation.valid) {
+      setSuccessMessage('لطفاً خطاهای فرم را برطرف کنید.');
       setSubmitting(false);
       return;
     }
@@ -112,14 +82,8 @@ const CalorieTrackingSection = () => {
       periodType,
       periodStart,
       periodEnd,
-      avgCalories: Number(fields.avgCalories),
-      proteinPercent: Number(fields.proteinPercent),
-      carbsPercent: Number(fields.carbsPercent),
-      fatsPercent: Number(fields.fatsPercent),
-      avgSteps: Number(fields.avgSteps),
-      strengthDays: Number(fields.strengthDays),
-      cardioDays: Number(fields.cardioDays),
-      note: fields.note,
+      timeZone,
+      ...validation.normalized,
       extraPhotos,
     };
 
@@ -141,9 +105,11 @@ const CalorieTrackingSection = () => {
         note: '',
       });
       setExtraPhotos([]);
+      await loadSubscription();
       navigate('/progress-report-submission?tab=notes');
     } catch (err) {
-      setSuccessMessage('❌ مشکلی در ارسال گزارش پیش آمد.');
+      const message = err.response?.data?.error || err.response?.data?.message;
+      setSuccessMessage(`❌ ${message || 'مشکلی در ارسال گزارش پیش آمد. دوباره تلاش کنید.'}`);
     }
 
     setSubmitting(false);
@@ -172,8 +138,13 @@ const CalorieTrackingSection = () => {
       });
 
       setRemaining(remainingReports);
+      const permissionRes = await api.get(
+        `/subscription/report-permission/${userId}?timeZone=${encodeURIComponent(timeZone)}`,
+      );
+      setReportPermission(permissionRes.data);
     } catch (err) {
       console.error('Subscription error:', err);
+      setReportPermission(null);
     }
   };
 
@@ -192,49 +163,51 @@ const CalorieTrackingSection = () => {
         }}
       />
 
+      {!isMonday && (
+        <div className="m-4 p-4 bg-red-50 border border-red-300 text-red-700 rounded-xl text-center">
+          ارسال گزارش غیرفعال است. پنجره ارسال فقط روز دوشنبه از ساعت ۰۰:۰۰ تا
+          ۲۳:۵۹ به وقت محلی شما باز می‌شود.
+        </div>
+      )}
+
+      {reportPermission && !reportPermission.allowed && (
+        <div className="m-4 p-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl text-sm">
+          {reportPermission.message}
+          {reportPermission.nextReportAt && (
+            <span className="block mt-1">
+              زمان مجاز بعدی:{' '}
+              {new Date(reportPermission.nextReportAt).toLocaleString('fa-IR')}
+            </span>
+          )}
+        </div>
+      )}
+
       <form onSubmit={submitReport} className="space-y-5 p-4">
         {/* PERIOD TOGGLE */}
         <div className="flex gap-2">
-          {subscription?.type === 'pro' ? (
-            <button
-              disabled
-              type="button"
-              onClick={() => setPeriodType('weekly')}
-              className={`flex-1 py-2 rounded-xl transition ${
-                periodType === 'weekly'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}>
-              ۷ روز اخیر
-            </button>
-          ) : (
-            <button
-              disabled
-              type="button"
-              onClick={() => setPeriodType('monthly')}
-              className={`flex-1 py-2 rounded-xl transition ${
-                periodType === 'monthly'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}>
-              ۳۰ روز اخیر
-            </button>
-          )}
+          <button
+            disabled
+            type="button"
+            className="flex-1 py-2 rounded-xl bg-blue-600 text-white">
+            گزارش ۷ روز اخیر
+          </button>
         </div>
 
         {/* CALORIES */}
         <div>
           <label>کالری میانگین</label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             className="input-box"
             value={fields.avgCalories}
             onChange={(e) =>
-              setFields({ ...fields, avgCalories: e.target.value })
+              setFields({ ...fields, avgCalories: normalizeDigits(e.target.value) })
             }
-            required
           />
+          {errors.avgCalories && <p className="text-red-600 text-xs mt-1">{errors.avgCalories}</p>}
         </div>
+        {errors.macros && <p className="text-red-600 text-xs">{errors.macros}</p>}
 
         {/* MACROS */}
         <div className="grid grid-cols-3 gap-3">
@@ -291,14 +264,15 @@ const CalorieTrackingSection = () => {
         <div>
           <label>میانگین قدم‌ها</label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             className="input-box"
             value={fields.avgSteps}
             onChange={(e) =>
-              setFields({ ...fields, avgSteps: Number(e.target.value) })
+              setFields({ ...fields, avgSteps: normalizeDigits(e.target.value) })
             }
-            required
           />
+          {errors.avgSteps && <p className="text-red-600 text-xs mt-1">{errors.avgSteps}</p>}
         </div>
 
         {/* DAYS SELECT */}
@@ -335,7 +309,12 @@ const CalorieTrackingSection = () => {
             </select>
           </div>
         </div>
-        <ExtraPhotosUpload maxFiles={10} onChange={setExtraPhotos} />
+        <ExtraPhotosUpload
+          maxFiles={10}
+          onChange={setExtraPhotos}
+          onStatusChange={setUploadsPending}
+        />
+        {errors.extraPhotos && <p className="text-red-600 text-xs">{errors.extraPhotos}</p>}
 
         {/* NOTE */}
         <div>
@@ -345,19 +324,30 @@ const CalorieTrackingSection = () => {
             value={fields.note}
             onChange={(e) => setFields({ ...fields, note: e.target.value })}
           />
+          {errors.note && <p className="text-red-600 text-xs mt-1">{errors.note}</p>}
         </div>
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={
+            submitting ||
+            uploadsPending ||
+            remaining <= 0 ||
+            reportPermission?.allowed === false ||
+            !isMonday
+          }
           className={`w-full py-3 rounded-xl font-semibold text-white transition
     ${
-      submitting
+      submitting || uploadsPending
         ? 'bg-gray-400 cursor-not-allowed'
         : 'bg-blue-600 hover:bg-blue-700'
     }
   `}>
-          {submitting ? 'در حال ارسال...' : 'ارسال گزارش'}
+          {uploadsPending
+            ? 'در حال آپلود تصاویر...'
+            : submitting
+              ? 'در حال ارسال...'
+              : 'ارسال گزارش'}
         </button>
       </form>
       {submitting && (
@@ -365,14 +355,13 @@ const CalorieTrackingSection = () => {
           لطفاً صبر کنید، گزارش در حال ارسال است...
         </div>
       )}
-      {hasSentToday && (
-        <p className="text-red-600 font-bold mt-2">
-          ⚠️ شما امروز گزارش ارسال کرده‌اید.
-        </p>
-      )}
-
       {successMessage && (
-        <div className="text-center p-3 bg-green-100 text-green-700 rounded-xl">
+        <div
+          className={`text-center p-3 rounded-xl ${
+            successMessage.startsWith('❌')
+              ? 'bg-red-100 text-red-700'
+              : 'bg-green-100 text-green-700'
+          }`}>
           {successMessage}
         </div>
       )}

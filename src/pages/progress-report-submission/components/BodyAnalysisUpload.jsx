@@ -4,19 +4,27 @@ import api from 'api/api';
 export default function BodyAnalysisUpload({ userId }) {
   const [file, setFile] = useState(null);
   const [uploadedUrl, setUploadedUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
 
   const upload = async () => {
     if (!file) return alert('ابتدا فایل را انتخاب کنید');
 
+    if (file.size > 10 * 1024 * 1024) return setError('حداکثر حجم فایل ۱۰ مگابایت است.');
+    setUploading(true);
+    setError('');
     const form = new FormData();
     form.append('file', file);
     form.append('userId', userId);
 
-    const res = await api.post('/report/upload-body-analysis', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-
-    setUploadedUrl(res.data.attachment.fileUrl);
+    try {
+      const res = await api.post('/report/upload-body-analysis', form);
+      setUploadedUrl(res.data.attachment.fileUrl);
+    } catch (err) {
+      setError(err.response?.data?.error || 'آپلود ناموفق بود؛ دوباره تلاش کنید.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -26,10 +34,13 @@ export default function BodyAnalysisUpload({ userId }) {
       <input type="file" onChange={(e) => setFile(e.target.files[0])} />
 
       <button
+        disabled={uploading}
         className="bg-blue-600 text-white p-2 rounded mt-3"
         onClick={upload}>
-        آپلود
+        {uploading ? 'در حال آپلود...' : 'آپلود'}
       </button>
+
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
       {uploadedUrl && (
         <a

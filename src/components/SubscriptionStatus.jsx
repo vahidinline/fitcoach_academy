@@ -23,6 +23,21 @@ const SubscriptionStatus = ({ userId }) => {
     }
   };
 
+  const startAcademy = async () => {
+    if (
+      !window.confirm(
+        'با شروع دوره، شمارش ۹۰ روز از امروز آغاز می‌شود. ادامه می‌دهید؟',
+      )
+    )
+      return;
+    try {
+      const res = await api.post(`/subscription/academy/${userId}/start`);
+      setSub(res.data.subscription);
+    } catch (error) {
+      alert(error.response?.data?.message || 'شروع دوره انجام نشد.');
+    }
+  };
+
   useEffect(() => {
     load();
   }, []);
@@ -67,8 +82,11 @@ const SubscriptionStatus = ({ userId }) => {
   const getAIMsg = () => {
     if (!sub) return 'برای شروع برنامه، یک اشتراک فعال تهیه کنید.';
 
+    if (sub.productType === 'academy' && !sub.hasStarted)
+      return 'دوره هنوز شروع نشده؛ هر زمان آماده بودی شروع کن. شمارش ۹۰ روز از همان روز آغاز می‌شود.';
+
     if (sub.productType === 'academy')
-      return '🔥 با دوره آکادمی هر زمان آماده باشی می‌تونی گزارش بدی. قدم کوچیکی بردار، ولی شروع کن!';
+      return '🔥 سه گزارش و سه جلسه آنلاین در اختیار داری؛ ارسال گزارش هفتگی اجباری نیست.';
 
     if (sub.productType === 'pro')
       return '🚀 اشتراک PRO فعال است — هر هفته گزارش بده تا مربی مسیرت را دقیق‌تر تنظیم کند.';
@@ -87,7 +105,7 @@ const SubscriptionStatus = ({ userId }) => {
 
     const map = {
       academy: { label: 'Academy', color: 'bg-blue-500' },
-      pro: { label: 'PRO', color: 'bg-purple-600' },
+      pro: { label: 'تکمیلی', color: 'bg-purple-600' },
       private: { label: 'PRIVATE', color: 'bg-yellow-500 text-black' },
     };
 
@@ -126,8 +144,9 @@ const SubscriptionStatus = ({ userId }) => {
   }
 
   // ========================= SUB AVAILABLE =========================
-  const remaining = sub.reportLimit - sub.reportsUsed;
-  const isExpired = sub.expiresAt && dayjs(sub.expiresAt).isBefore(dayjs());
+  const remaining = sub.remainingReports ?? sub.reportLimit - sub.reportsUsed;
+  const isExpired =
+    sub.isExpired ?? (sub.expiresAt && dayjs(sub.expiresAt).isBefore(dayjs()));
 
   return (
     <div
@@ -147,10 +166,19 @@ const SubscriptionStatus = ({ userId }) => {
         </div>
 
         <p className="text-gray-700 mb-2">
-          {sub.productType === 'academy'
-            ? '⏳ بدون محدودیت زمانی'
-            : `⏳ تاریخ انقضا: ${dayjs(sub.expiresAt).format('YYYY-MM-DD')}`}
+          {!sub.hasStarted
+            ? '⏳ دوره هنوز شروع نشده است'
+            : isExpired
+              ? `دوره در ${dayjs(sub.expiresAt).format('YYYY-MM-DD')} پایان یافته است`
+              : `⏳ ${sub.remainingDays} روز تا پایان دوره (${dayjs(sub.expiresAt).format('YYYY-MM-DD')})`}
         </p>
+
+        {sub.startsAt && (
+          <p className="text-xs text-gray-600">
+            شروع: {dayjs(sub.startsAt).format('YYYY-MM-DD')} — پایان:{' '}
+            {dayjs(sub.expiresAt).format('YYYY-MM-DD')}
+          </p>
+        )}
 
         <p className="text-gray-900 font-medium mt-4">
           گزارش‌های باقیمانده: <b>{remaining}</b> از <b>{sub.reportLimit}</b>
@@ -165,6 +193,31 @@ const SubscriptionStatus = ({ userId }) => {
             }`}
           />
         </div>
+
+        {sub.productType === 'academy' && (
+          <p className="text-gray-900 font-medium mt-3">
+            جلسات آنلاین باقیمانده:{' '}
+            <b>
+              {sub.remainingOnlineSessions ??
+                sub.onlineSessionLimit - sub.onlineSessionsUsed}
+            </b>{' '}
+            از <b>{sub.onlineSessionLimit}</b>
+          </p>
+        )}
+
+        {sub.offlineVideoAccess && (
+          <p className="mt-3 text-sm text-green-700 font-medium">
+            دسترسی ورود و ویدئوهای آفلاین پس از پایان دوره نیز حفظ می‌شود.
+          </p>
+        )}
+
+        {sub.productType === 'academy' && !sub.hasStarted && (
+          <button
+            onClick={startAcademy}
+            className="w-full mt-5 py-3 text-white font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all">
+            شروع دوره ۹۰ روزه
+          </button>
+        )}
 
         {/* AI Coach Message */}
         <div className="mt-5 p-4 rounded-xl bg-white/40 border border-white/50 shadow-inner text-sm text-gray-800">

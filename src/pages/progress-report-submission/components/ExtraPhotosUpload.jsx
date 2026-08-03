@@ -1,11 +1,19 @@
-import React, { useState, useRef } from 'react';
-import { gsap } from 'gsap';
+import React, { useEffect, useState, useRef } from 'react';
 import api from 'api/api';
 
-export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
+export default function ExtraPhotosUpload({ maxFiles = 10, onChange, onStatusChange }) {
   const fileInputRef = useRef(null);
   const [files, setFiles] = useState([]); // {id, preview, url, status}
   const [progress, setProgress] = useState({});
+
+  useEffect(() => {
+    onStatusChange?.(files.some((file) => file.status === 'uploading'));
+  }, [files, onStatusChange]);
+
+  useEffect(
+    () => () => files.forEach((file) => file.preview && URL.revokeObjectURL(file.preview)),
+    [],
+  );
 
   const handlePick = (e) => {
     const list = Array.from(e.target.files || []);
@@ -13,15 +21,24 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
   };
 
   const uploadList = (list) => {
-    if (files.length + list.length > maxFiles) {
+    const valid = list.filter(
+      (file) => file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024,
+    );
+    if (valid.length !== list.length) {
+      alert('فقط تصویر با حجم حداکثر ۱۰ مگابایت مجاز است.');
+    }
+    if (files.length + valid.length > maxFiles) {
       alert(`حداکثر ${maxFiles} عکس می‌توانید آپلود کنید.`);
       return;
     }
 
-    list.forEach(upload);
+    if (valid.length > 0) onStatusChange?.(true);
+    valid.forEach(upload);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const upload = async (file) => {
+    onStatusChange?.(true);
     const tempId = Date.now() + Math.random();
 
     // ابتدا فایل را به صورت موقت اضافه می‌کنیم
@@ -30,15 +47,13 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
       {
         id: tempId,
         preview: URL.createObjectURL(file),
+        file,
         url: null,
         status: 'uploading',
       },
     ]);
 
     setProgress((p) => ({ ...p, [tempId]: 0 }));
-
-    const formData = new FormData();
-    formData.append('file', file);
 
     const interval = setInterval(() => {
       setProgress((p) => ({
@@ -48,9 +63,21 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
     }, 200);
 
     try {
-      const res = await api.post('/report/upload-image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      let res;
+      let lastError;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          res = await api.post('/report/upload-image', formData);
+          break;
+        } catch (error) {
+          lastError = error;
+          const retryable = !error.response || error.response.status >= 500;
+          if (!retryable || attempt === 1) throw error;
+        }
+      }
+      if (!res) throw lastError;
 
       clearInterval(interval);
 
@@ -77,6 +104,13 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
         prev.map((f) => (f.id === tempId ? { ...f, status: 'failed' } : f))
       );
     }
+  };
+
+  const retry = (item) => {
+    const preview = item.preview;
+    setFiles((prev) => prev.filter((file) => file.id !== item.id));
+    if (preview) URL.revokeObjectURL(preview);
+    upload(item.file);
   };
 
   // const upload = async (file) => {
@@ -137,6 +171,8 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
   // };
 
   const remove = (id) => {
+    const removed = files.find((file) => file.id === id);
+    if (removed?.preview) URL.revokeObjectURL(removed.preview);
     const newList = files.filter((f) => f.id !== id);
     setFiles(newList);
     onChange && onChange(newList.map((f) => f.url).filter(Boolean));
@@ -183,7 +219,20 @@ export default function ExtraPhotosUpload({ maxFiles = 10, onChange }) {
               </div>
             )}
 
+            {f.status === 'failed' && (
+              <div className="absolute inset-0 bg-red-900/70 text-white flex flex-col items-center justify-center text-xs gap-2">
+                <span>آپلود ناموفق</span>
+                <button
+                  type="button"
+                  onClick={() => retry(f)}
+                  className="bg-white text-red-700 rounded px-2 py-1">
+                  تلاش دوباره
+                </button>
+              </div>
+            )}
+
             <button
+              type="button"
               className="absolute top-1 left-1 bg-black/60 text-white text-xs rounded px-1"
               onClick={() => remove(f.id)}>
               حذف
