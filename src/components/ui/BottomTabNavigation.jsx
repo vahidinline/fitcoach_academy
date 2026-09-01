@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import { academyFeatures } from '../../config/features';
+import api from '../../api/api';
 
 const primaryItems = [
   { id: 'home', label: 'خانه', path: '/user-dashboard', icon: 'Home' },
@@ -12,6 +13,8 @@ const primaryItems = [
 
 const secondaryItems = [
   { label: 'پروفایل و اطلاعات اولیه', path: '/user-basic-data', icon: 'UserRoundPen' },
+  { label: 'رژیم شخصی من', path: '/diet-plan', icon: 'Salad' },
+  { label: 'عضویت در گروه تلگرام دوره', href: 'https://t.me/+UpNQulA8R_c4ZWI0', icon: 'Send' },
   { label: 'سوابق پرداخت', path: '/payment-history', icon: 'CreditCard', enabled: academyFeatures.paymentHistory },
   { label: 'آزمون دوره', path: '/quiz', icon: 'NotebookPen', enabled: academyFeatures.courseQuiz },
   { label: 'گواهی دوره', path: '/request-for-certificate', icon: 'Award', enabled: academyFeatures.courseCertificate },
@@ -21,6 +24,24 @@ const BottomTabNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showMore, setShowMore] = useState(false);
+  const [productType, setProductType] = useState(null);
+  const [initialTasksComplete, setInitialTasksComplete] = useState(false);
+  const [dietPlanReady, setDietPlanReady] = useState(false);
+
+  useEffect(() => {
+    const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
+    if (!userId) return;
+    Promise.allSettled([api.get(`/subscription/active/${userId}`), api.get(`/api/client/${userId}`), api.get(`/diet-plans/my/${userId}`)])
+      .then(([subscriptionResult, clientResult, dietPlanResult]) => {
+        const type = subscriptionResult.status === 'fulfilled' ? subscriptionResult.value.data.subscription?.productType : null;
+        const tasks = clientResult.status === 'fulfilled' ? clientResult.value.data?.tasks : null;
+        setProductType(type || null);
+        setInitialTasksComplete(Boolean(tasks && ['assessment', 'profile', 'measurements', 'weight', 'photos'].every((task) => tasks[task])));
+        setDietPlanReady(Boolean(dietPlanResult.status === 'fulfilled' && dietPlanResult.value.data?.plan));
+      });
+  }, []);
+
+  const isLocked = (item) => productType === 'start-by-azi' && item.path === '/diet-plan' && (!initialTasksComplete || !dietPlanReady);
 
   if (['/', '/login', '/registration-stepper', '/register'].includes(location.pathname)) {
     return null;
@@ -59,7 +80,7 @@ const BottomTabNavigation = () => {
         <nav className="flex-1 px-4">
           <p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-white/35">مسیر من</p>
           <div className="space-y-1.5">
-            {primaryItems.filter((item) => item.path).map((item) => (
+            {primaryItems.filter((item) => item.path && !(productType === 'start-by-azi' && item.id === 'learn')).map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -81,11 +102,12 @@ const BottomTabNavigation = () => {
               <button
                 key={item.path}
                 type="button"
-                onClick={() => navigate(item.path)}
+                disabled={isLocked(item)}
+                onClick={() => item.href ? window.open(item.href, '_blank', 'noopener,noreferrer') : navigate(item.path)}
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-right text-xs font-semibold transition ${
-                  location.pathname.startsWith(item.path)
+                  item.path && location.pathname.startsWith(item.path)
                     ? 'bg-white/10 text-white'
-                    : 'text-white/48 hover:bg-white/5 hover:text-white/80'
+                    : isLocked(item) ? 'cursor-not-allowed text-white/25' : 'text-white/48 hover:bg-white/5 hover:text-white/80'
                 }`}>
                 <Icon name={item.icon} size={17} />
                 {item.label}
@@ -103,7 +125,7 @@ const BottomTabNavigation = () => {
         dir="rtl"
         className="fixed inset-x-3 bottom-3 z-50 rounded-[1.4rem] border border-white/80 bg-[#fffdf8]/92 p-1.5 shadow-[0_18px_45px_rgba(28,44,41,.18)] backdrop-blur-xl lg:hidden">
         <div className="grid grid-cols-4 gap-1">
-          {primaryItems.map((item) => (
+          {primaryItems.filter((item) => !(productType === 'start-by-azi' && item.id === 'learn')).map((item) => (
             <button
               key={item.id}
               type="button"
@@ -131,13 +153,14 @@ const BottomTabNavigation = () => {
             <div className="grid grid-cols-2 gap-3">
               {secondaryItems.map((item) => (
                 <button
-                  key={item.path}
+                key={item.path || item.href}
                   type="button"
                   onClick={() => {
                     setShowMore(false);
-                    navigate(item.path);
+                    if (!isLocked(item)) item.href ? window.open(item.href, '_blank', 'noopener,noreferrer') : navigate(item.path);
                   }}
-                  className="flex min-h-24 flex-col items-start justify-between rounded-2xl border border-[#1c2c29]/10 bg-[#f3efe7]/70 p-4 text-right text-xs font-bold text-[#1c2c29]">
+                  disabled={isLocked(item)}
+                  className={`flex min-h-24 flex-col items-start justify-between rounded-2xl border border-[#1c2c29]/10 bg-[#f3efe7]/70 p-4 text-right text-xs font-bold text-[#1c2c29] ${isLocked(item) ? 'cursor-not-allowed opacity-40' : ''}`}>
                   <Icon name={item.icon} size={21} className="text-[#df6b52]" />
                   {item.label}
                 </button>

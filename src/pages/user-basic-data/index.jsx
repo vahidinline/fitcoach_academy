@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from 'api/api';
 import BottomTabNavigation from 'components/ui/BottomTabNavigation';
 
@@ -18,7 +19,18 @@ export default function BasicForm() {
 
   const userId = storedUserData?.id || storedUserData?.userId || '';
 
-  const [activeTab, setActiveTab] = useState('assessment'); // profile | assessment
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(requestedTab === 'profile' ? 'profile' : 'assessment');
+
+  useEffect(() => {
+    setActiveTab(requestedTab === 'profile' ? 'profile' : 'assessment');
+  }, [requestedTab]);
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   // ---- PROFILE DATA ----
   const [profileData, setProfileData] = useState({
@@ -67,7 +79,7 @@ export default function BasicForm() {
         <div className="mb-7 grid grid-cols-2 rounded-2xl bg-[#eae6dc] p-1.5">
           <button
             type="button"
-            onClick={() => setActiveTab('profile')}
+            onClick={() => selectTab('profile')}
             className={`min-h-11 rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeTab === 'profile'
                 ? 'bg-[#1c2c29] text-white shadow-lg'
@@ -78,7 +90,7 @@ export default function BasicForm() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('assessment')}
+            onClick={() => selectTab('assessment')}
             className={`min-h-11 rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeTab === 'assessment'
                 ? 'bg-[#1c2c29] text-white shadow-lg'

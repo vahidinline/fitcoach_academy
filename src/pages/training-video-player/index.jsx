@@ -43,7 +43,7 @@ const TrainingVideoPlayer = () => {
       id: '1',
       title: 'جلسه اول آکادمی',
       description: `توضیحات درباره روند کار در مسیر تناسب اندام`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_01.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-01-65c7c01c56331d31b7a495bd.mp4',
       thumbnail: Thumb01,
       duration: 49,
       instructor: 'آذر شفیعی',
@@ -60,7 +60,7 @@ const TrainingVideoPlayer = () => {
       id: '2',
       title: 'جلسه دوم',
       description: `همه چیز درباره پروتیین`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_02.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-02-65d25131a9f0a79c2a044586.mp4',
       thumbnail: Thumb02,
       duration: 35,
       instructor: 'آذر شفیعی',
@@ -82,7 +82,7 @@ const TrainingVideoPlayer = () => {
       id: '3',
       title: 'جلسه سوم',
       description: `همه چیز درباره فیبر`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_03.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-03-65d2506ba9f0a79c2a044585.mp4',
       thumbnail: Thumb03,
       duration: 40,
       instructor: 'آذر شفیعی',
@@ -100,7 +100,7 @@ const TrainingVideoPlayer = () => {
       id: '4',
       title: 'جلسه چهارم',
       description: `همه چیز درباره کربوهیدرات و قندها`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_04.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-04-65dc5ff4ea6c6fcb2b681af3.mp4',
       thumbnail: Thumb04,
       duration: 42,
       instructor: 'آذر شفیعی',
@@ -122,7 +122,7 @@ const TrainingVideoPlayer = () => {
       id: '5',
       title: 'جلسه پنجم',
       description: `همه چیز درباره خواب و آب`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_05.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-05-65d251a5a9f0a79c2a044587.mp4',
       thumbnail: Thumb05,
       duration: 58,
       instructor: 'آذر شفیعی',
@@ -144,7 +144,7 @@ const TrainingVideoPlayer = () => {
       id: '6',
       title: 'جلسه ششم',
       description: `همه چیز درباره چربی ها`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_06.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-06-65dc703eea6c6fcb2b681af5.mp4',
       thumbnail: Thumb06,
       duration: 42,
       instructor: 'آذر شفیعی',
@@ -162,7 +162,7 @@ const TrainingVideoPlayer = () => {
       id: '7',
       title: 'جلسه هفتم',
       description: `سبزیجات و hand size portion`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_07.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-07-65dc714bea6c6fcb2b681af6.mp4',
       thumbnail: Thumb07,
       duration: 29,
       instructor: 'آذر شفیعی',
@@ -183,7 +183,7 @@ const TrainingVideoPlayer = () => {
       id: '8',
       title: 'جلسه هشتم',
       description: `بررسی و مقایسه انواع رژیم های روز دنیا`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_08.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-08-65dc71aaea6c6fcb2b681af7.mp4',
       thumbnail: Thumb08,
       duration: 51,
       instructor: 'آذر شفیعی',
@@ -195,7 +195,7 @@ const TrainingVideoPlayer = () => {
       id: '9',
       title: 'جلسه نهم',
       description: `همه چیز درباره مکمل های ضروری و غیر ضروری`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_09.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-09-65dc71f6ea6c6fcb2b681af8.mp4',
       thumbnail: Thumb09,
       duration: 35,
       instructor: 'آذر شفیعی',
@@ -207,7 +207,7 @@ const TrainingVideoPlayer = () => {
       id: '10',
       title: 'جلسه دهم',
       description: `جمع بندی مطالب، مثال عینی طراحی یک برنامه ی غذایی`,
-      videoSrc: 'https://backend.fitlinez.com/private/shape_up_academy_10.mp4',
+      videoSrc: 'https://dl.azishafiei.ir/shape-up-academy/session-10-664716c3d9892a21a4e4b244.mp4',
       thumbnail: Thumb10,
       duration: 53,
       instructor: 'آذر شفیعی',
@@ -220,7 +220,7 @@ const TrainingVideoPlayer = () => {
       title: 'قسمت دوم -  جلسه دهم',
       description: `جمع بندی مطالب، مثال عینی طراحی یک برنامه ی غذایی محاسبه کالری و چینش درصد ماکرویی ⁠هرم های تغذیه، پروتیین و کالری خروجی ⁠و منحنی یادگیری`,
       videoSrc:
-        'https://storage.googleapis.com/backend.fitlinez.com/private/xnz-mpvd-tjx%20(2024-05-16%2017_56%20GMT%2B1).mp4',
+        'https://dl.azishafiei.ir/shape-up-academy/session-11-65f30492309433588fa32b98.mp4',
       thumbnail: Thumb10,
       duration: 28,
       // difficulty: 'Beginner',
@@ -249,8 +249,9 @@ const TrainingVideoPlayer = () => {
         // دریافت نوع اشتراک
         const subRes = await api.get(`/subscription/active/${userId}`);
         const userProductType = subRes.data?.subscription?.productType;
+        const canWatchVideos = subRes.data?.subscription?.offlineVideoAccess;
 
-        if (!userProductType) {
+        if (!userProductType || !canWatchVideos) {
           setAccessDenied(true);
           setIsLoading(false);
           return;

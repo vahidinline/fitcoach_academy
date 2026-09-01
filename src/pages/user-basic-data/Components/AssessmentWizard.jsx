@@ -8,17 +8,20 @@ import StepGoal from './steps/StepGoal';
 import StepLifestyle from './steps/StepLifestyle';
 import StepHealth from './steps/StepHealth';
 import StepFinish from './steps/StepFinish';
+import { useNavigate } from 'react-router-dom';
 
 const stepMeta = [
   ['اطلاعات بدنی', 'UserRound'], ['سابقه تمرین', 'Dumbbell'], ['هدف شما', 'Target'], ['سلامت', 'ShieldPlus'], ['سبک زندگی', 'HeartPulse'], ['مرور نهایی', 'CheckCircle2'],
 ];
 
 export default function AssessmentWizard() {
+  const navigate = useNavigate();
   const userId = JSON.parse(localStorage.getItem('userData') || '{}').id;
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const containerRef = useRef(null);
 
   const loadAssessment = async () => {
@@ -32,12 +35,14 @@ export default function AssessmentWizard() {
 
   const submit = async () => {
     setSaving(true);
+    setFeedback(null);
     try {
       if (isEditing) await api.put(`/ShapeUpAssessment/${userId}`, form);
       else await api.post('/ShapeUpAssessment', { userId, ...form });
-      alert('اطلاعات ارزیابی با موفقیت ذخیره شد!');
+      setFeedback({ type: 'success', text: 'اطلاعات اولیه با موفقیت ذخیره شد؛ در حال بازگشت به داشبورد…' });
       await loadAssessment();
-    } catch (error) { console.error(error); alert('خطا در ذخیره ارزیابی'); }
+      window.setTimeout(() => navigate('/user-dashboard'), 1200);
+    } catch (error) { console.error(error); setFeedback({ type: 'error', text: error.response?.data?.error || 'خطا در ذخیره اطلاعات اولیه. دوباره تلاش کنید.' }); }
     finally { setSaving(false); }
   };
 
@@ -84,6 +89,7 @@ export default function AssessmentWizard() {
 
         <div className="p-5 sm:p-8">
           <div ref={containerRef}>{steps[step]}</div>
+          {feedback && <p className={`mt-5 rounded-2xl p-3 text-xs font-bold ${feedback.type === 'success' ? 'bg-[#dce6df] text-[#29483e]' : 'bg-red-50 text-red-700'}`}>{feedback.text}</p>}
           <div className="mt-8 flex items-center justify-between gap-3 border-t border-[#e6e1d8] pt-5">
             <button onClick={() => setStep((s) => s - 1)} disabled={step === 0} className="academy-secondary-button disabled:invisible"><Icon name="ArrowRight" size={17} /> قبلی</button>
             {step < steps.length - 1 ? (

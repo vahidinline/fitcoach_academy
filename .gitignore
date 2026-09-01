@@ -6,7 +6,7 @@ package-lock.json
 .vscode/
 .idea/
 vite.config.*s.*
-.env
+.env.production
 .env.*.local
 /dist
 /.turbo

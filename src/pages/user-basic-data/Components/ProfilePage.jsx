@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import api from 'api/api';
 import Icon from '../../../components/AppIcon';
+import { useNavigate } from 'react-router-dom';
 
 const fields = [
   { key: 'name', label: 'نام و نام خانوادگی', type: 'text', icon: 'User', placeholder: 'نام شما' },
@@ -12,6 +13,7 @@ const fields = [
 ];
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -19,6 +21,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({ name: '', email: '', phoneNumber: '', instagram: '', location: '', photo: '' });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     if (containerRef.current) gsap.from(containerRef.current, { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' });
@@ -58,13 +61,19 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     if (uploading) return;
+    if (!profile.name?.trim() || !profile.location?.trim() || (!profile.email?.trim() && !profile.phoneNumber?.trim())) {
+      setFeedback({ type: 'error', text: 'برای تکمیل پروفایل، نام، شهر محل زندگی و حداقل ایمیل یا شماره موبایل را وارد کنید.' });
+      return;
+    }
     setLoading(true);
+    setFeedback(null);
     try {
-      await api.put(`/api/client/${userId}`, profile);
-      alert('پروفایل با موفقیت ذخیره شد');
+      await api.put(`/api/client/profile/${userId}`, profile);
+      setFeedback({ type: 'success', text: 'پروفایل با موفقیت ذخیره شد؛ در حال بازگشت به داشبورد…' });
+      window.setTimeout(() => navigate('/user-dashboard'), 1200);
     } catch (err) {
       console.error(err);
-      alert('خطا در ذخیره پروفایل');
+      setFeedback({ type: 'error', text: err.response?.data?.message || 'خطا در ذخیره پروفایل. دوباره تلاش کنید.' });
     } finally {
       setLoading(false);
     }
@@ -90,6 +99,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            {feedback && <p className={`sm:col-span-2 rounded-2xl p-3 text-xs font-bold ${feedback.type === 'success' ? 'bg-[#dce6df] text-[#29483e]' : 'bg-red-50 text-red-700'}`}>{feedback.text}</p>}
             {fields.map((field) => (
               <label key={field.key} className={field.key === 'name' || field.key === 'location' ? 'sm:col-span-2' : ''}>
                 <span className="mb-2 block text-xs font-bold text-[#52605b]">{field.label}</span>

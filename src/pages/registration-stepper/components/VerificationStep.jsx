@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import { normalizeDigits } from 'utils/persianNumbers';
 
 const VerificationStep = ({
   selectedAuthMethod,
@@ -106,7 +107,7 @@ const VerificationStep = ({
           type="text"
           placeholder={`کد ${method.codeLength} رقمی`}
           value={verificationCode}
-          onChange={(e) => onVerificationCodeChange(e.target.value)}
+          onChange={(e) => onVerificationCodeChange(normalizeDigits(e.target.value).replace(/\D/g, ''))}
           maxLength={method.codeLength}
           className="text-center text-2xl font-mono tracking-widest"
           required

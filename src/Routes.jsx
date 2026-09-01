@@ -21,6 +21,7 @@ import { academyFeatures } from 'config/features';
 const CertificateIndex = React.lazy(() => import('pages/Certificate'));
 const Quiz = React.lazy(() => import('pages/Quiz'));
 const PaymentHistory = React.lazy(() => import('components/PaymentHistory'));
+const DietPlan = React.lazy(() => import('pages/diet-plan'));
 
 const featureRoute = (enabled, element) =>
   enabled ? element : <Navigate to="/user-dashboard" replace />;
@@ -57,6 +58,7 @@ const Routes = () => {
               element={<TrainingVideoPlayer />}
             />
             <Route path="/user-basic-data" element={<BasicForm />} />
+            <Route path="/diet-plan" element={<DietPlan />} />
             <Route path="/request-for-certificate" element={featureRoute(academyFeatures.courseCertificate, <CertificateIndex />)} />
             <Route path="/payment-processing" element={<PaymentProcessing />} />
             <Route path="/payment-history" element={featureRoute(academyFeatures.paymentHistory, <PaymentHistory />)} />

@@ -32,6 +32,10 @@ const ServiceSelectionStep = ({
       <div className="space-y-4">
         {services.map((service) => {
           if (service.status === 'notActive') return null;
+          const launchOffer = service.launchOffer?.enabled && Number(service.launchOffer.reserved || 0) < Number(service.launchOffer.maxReservations || 0);
+          const launchPrice = selectedLocation === 'iran' ? service.launchOffer?.iranPrice : service.launchOffer?.euroPrice;
+          const regularPrice = selectedLocation === 'iran' ? service.priceRial?.price : service.price?.price;
+          const shownPrice = launchOffer && launchPrice ? launchPrice : regularPrice;
           {
             return (
               <div
@@ -66,7 +70,7 @@ const ServiceSelectionStep = ({
                             <div className="flex items-center space-x-2">
                               {service.status !== 'discontinued' ? (
                                 <span className="text-xl font-bold text-foreground">
-                                  € {service.price.displayPrice}
+                                  € {shownPrice}
                                 </span>
                               ) : (
                                 <span className="flex flex-col text-right">
@@ -83,7 +87,7 @@ const ServiceSelectionStep = ({
                             <div className="flex items-center space-x-2">
                               {service.status !== 'discontinued' ? (
                                 <span className="text-xl font-bold text-foreground">
-                                  {service.priceRial.price.toLocaleString(
+                                  {Number(shownPrice).toLocaleString(
                                     'fa-IR'
                                   )}{' '}
                                   تومان
@@ -130,6 +134,7 @@ const ServiceSelectionStep = ({
                           )
                       )}
                     </ul>
+                    {launchOffer && <p className="mt-3 rounded-xl bg-[#fff0e8] px-3 py-2 text-xs font-bold text-[#a4523e]">قیمت ویژه {Number(launchPrice).toLocaleString(selectedLocation === 'iran' ? 'fa-IR' : 'en-US')} {selectedLocation === 'iran' ? 'تومان' : 'یورو'} برای {Number(service.launchOffer.maxReservations) - Number(service.launchOffer.reserved || 0)} نفر اول</p>}
                   </div>
                 </div>
               </div>

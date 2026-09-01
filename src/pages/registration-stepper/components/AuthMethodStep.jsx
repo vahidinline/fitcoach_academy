@@ -3,6 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import PersianNumberInput from 'components/ui/NumberInput';
+import { normalizeDigits } from 'utils/persianNumbers';
 
 const AuthMethodStep = ({
   selectedLocation,
@@ -149,7 +150,7 @@ const AuthMethodStep = ({
                       selectedLocation === 'iran' ? (
                         <PersianNumberInput
                           value={contactInfo}
-                          onChange={(val) => onContactInfoChange(val)}
+                          onChange={(val) => onContactInfoChange(normalizeDigits(val))}
                           className="flex h-10 w-full rounded-md border border-white bg-gray-100 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                       ) : (

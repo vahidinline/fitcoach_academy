@@ -19,6 +19,7 @@ import BodyAnalysisUpload from './components/BodyAnalysisUpload';
 import UserAttachments from './components/UserAttachments';
 import { CalendarClock, CheckCircle2, LockKeyhole } from 'lucide-react';
 import { canSubmitToday } from 'utils/canSubmitReport';
+import api from 'api/api';
 
 const ProgressReportSubmission = () => {
   const navigate = useNavigate();
@@ -32,6 +33,18 @@ const ProgressReportSubmission = () => {
 
   const [activeSection, setActiveSection] = useState(initialTab);
   const [mondayOpen, setMondayOpen] = useState(() => canSubmitToday());
+  const [weeklyReportsAccess, setWeeklyReportsAccess] = useState(true);
+  const [isStartByAzi, setIsStartByAzi] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    api.get(`/subscription/active/${userId}`)
+      .then(({ data }) => {
+        setWeeklyReportsAccess(data.subscription?.weeklyReportsAccess !== false);
+        setIsStartByAzi(data.subscription?.productType === 'start-by-azi');
+      })
+      .catch(() => { setWeeklyReportsAccess(false); setIsStartByAzi(false); });
+  }, [userId]);
 
   useEffect(() => {
     const syncReportingWindow = () => setMondayOpen(canSubmitToday());
@@ -213,7 +226,9 @@ const ProgressReportSubmission = () => {
   };
 
   const renderNavigationItem = (section) => {
-    const isWeeklyReportLocked = section.id === 'calories' && !mondayOpen;
+    const isWeeklyReportLocked = section.id === 'calories' && (!mondayOpen || !weeklyReportsAccess);
+    const isCoachFeedbackLocked = section.id === 'notes' && isStartByAzi;
+    const isLocked = isWeeklyReportLocked || isCoachFeedbackLocked;
     const hasData =
       (section.id === 'photos' && formData.beforeAfterPhotos.length > 0) ||
       (section.id === 'measurements' &&
@@ -227,20 +242,20 @@ const ProgressReportSubmission = () => {
         key={section.id}
         type="button"
         onClick={() => setActiveSection(section.id)}
-        disabled={isWeeklyReportLocked}
-        aria-disabled={isWeeklyReportLocked}
-        title={isWeeklyReportLocked ? 'ارسال گزارش هفتگی فقط دوشنبه‌ها فعال است' : undefined}
+        disabled={isLocked}
+        aria-disabled={isLocked}
+        title={isCoachFeedbackLocked ? 'بازخورد مربی در اشتراک Start by Azi فعال نیست' : isWeeklyReportLocked ? (weeklyReportsAccess ? 'ارسال گزارش هفتگی فقط دوشنبه‌ها فعال است' : 'ارسال گزارش هفتگی در اشتراک شما فعال نیست') : undefined}
         className={`flex w-full items-center gap-3 rounded-2xl p-3.5 text-right transition ${
           activeSection === section.id
             ? 'bg-[#1c2c29] text-white shadow-lg'
             : 'text-[#68716d] hover:bg-[#f3efe7] hover:text-[#18211f]'
-        } ${isWeeklyReportLocked ? 'cursor-not-allowed opacity-45' : ''}`}>
+        } ${isLocked ? 'cursor-not-allowed opacity-45' : ''}`}>
         <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-current/10">
           <Icon name={section.icon} size={17} className="text-current" />
           {hasData && <span className="absolute -left-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#df6b52]" />}
         </span>
         <span className="text-xs font-bold">{section.label}</span>
-        {isWeeklyReportLocked && <LockKeyhole size={14} className="mr-auto" />}
+        {isLocked && <LockKeyhole size={14} className="mr-auto" />}
       </button>
     );
   };
@@ -268,12 +283,12 @@ const ProgressReportSubmission = () => {
           </div>
           <div>
             <h3 className="text-sm font-black">
-              {mondayOpen ? 'پنجره ارسال گزارش باز است' : 'ارسال گزارش فقط روز دوشنبه فعال می‌شود'}
+              {weeklyReportsAccess ? (mondayOpen ? 'پنجره ارسال گزارش باز است' : 'ارسال گزارش فقط روز دوشنبه فعال می‌شود') : 'ارسال گزارش هفتگی در اشتراک شما فعال نیست'}
             </h3>
             <p className="mt-1 text-xs leading-6 opacity-75">
-              {mondayOpen
+              {weeklyReportsAccess && mondayOpen
                 ? 'تا ساعت ۲۳:۵۹ منطقه زمانی دستگاه فرصت داری گزارش این هفته را کامل کنی.'
-                : 'بخش‌های آرشیو همیشه در دسترس هستند؛ برای ارسال گزارش بعدی دوشنبه برگرد.'}
+                : weeklyReportsAccess ? 'بخش‌های آرشیو همیشه در دسترس هستند؛ برای ارسال گزارش بعدی دوشنبه برگرد.' : 'اطلاعات سلامت، وزن، فایل‌ها و بازخوردها همچنان برای شما در دسترس هستند.'}
             </p>
           </div>
           <CalendarClock size={18} className="mr-auto hidden shrink-0 sm:block" />

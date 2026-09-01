@@ -9,6 +9,7 @@ const titles = [
   ['/progress-report-submission', 'گزارش و مسیر پیشرفت'],
   ['/training-video-player', 'آموزش‌ها'],
   ['/user-basic-data', 'پروفایل من'],
+  ['/diet-plan', 'رژیم شخصی من'],
 ];
 
 const ContextualHeader = () => {

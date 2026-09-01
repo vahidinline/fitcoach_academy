@@ -12,15 +12,26 @@ const PaymentStep = ({ onComplete, onBack }) => {
     selectedServicePrice,
     selectedServiceRialPrice,
     selectedServiceName,
+    selectedServiceLaunchOffer,
   } = useAuthStore();
 
-  const basePrice =
+  const regularPrice =
     selectedLocation === 'iran'
       ? selectedServiceRialPrice.price
       : selectedServicePrice.price;
+  const launchAvailable =
+    selectedServiceLaunchOffer?.enabled &&
+    Number(selectedServiceLaunchOffer?.reserved || 0) <
+      Number(selectedServiceLaunchOffer?.maxReservations || 0);
+  const basePrice = launchAvailable
+    ? selectedLocation === 'iran'
+      ? selectedServiceLaunchOffer.iranPrice
+      : selectedServiceLaunchOffer.euroPrice
+    : regularPrice;
 
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   // ---- Discount states ----
   const [discountCode, setDiscountCode] = useState('');
@@ -28,6 +39,10 @@ const PaymentStep = ({ onComplete, onBack }) => {
   const [discountError, setDiscountError] = useState('');
   const [discountSuccess, setDiscountSuccess] = useState('');
   const [finalPrice, setFinalPrice] = useState(basePrice);
+
+  useEffect(() => {
+    setFinalPrice(basePrice);
+  }, [basePrice]);
 
   // ----------------------
   // APPLY DISCOUNT
@@ -72,6 +87,7 @@ const PaymentStep = ({ onComplete, onBack }) => {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
+      setPaymentError('');
 
       const result = await onComplete({
         amountRial: selectedLocation === 'iran' ? finalPrice : null,
@@ -88,13 +104,18 @@ const PaymentStep = ({ onComplete, onBack }) => {
       }
     } catch (err) {
       console.error('Payment error:', err);
+      setPaymentError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          'شروع پرداخت انجام نشد. لطفاً دوباره تلاش کنید.',
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
   useEffect(() => {
-    setPaymentMethod(selectedLocation === 'iran' ? 'shaparak' : 'stripe');
+    setPaymentMethod(selectedLocation === 'iran' ? 'zarinpal' : 'paypal');
   }, [selectedLocation]);
 
   return (
@@ -107,8 +128,16 @@ const PaymentStep = ({ onComplete, onBack }) => {
         <p className="text-2xl font-bold text-foreground">
           {selectedLocation === 'iran'
             ? `${finalPrice?.toLocaleString('fa-IR')} تومان`
-            : `$${finalPrice}`}
+            : `€${finalPrice}`}
         </p>
+        {launchAvailable && (
+          <p className="mt-2 text-xs font-bold text-[#a4523e]">
+            قیمت ویژه برای{' '}
+            {Number(selectedServiceLaunchOffer.maxReservations) -
+              Number(selectedServiceLaunchOffer.reserved || 0)}{' '}
+            نفر اول اعمال شده است.
+          </p>
+        )}
 
         {discountPercent > 0 && (
           <p className="text-green-600 text-sm mt-1">
@@ -141,8 +170,8 @@ const PaymentStep = ({ onComplete, onBack }) => {
         label="روش پرداخت"
         options={
           selectedLocation === 'iran'
-            ? [{ value: 'shaparak', label: 'پرداخت شاپرک' }]
-            : [{ value: 'stripe', label: 'Credit Card (Stripe)' }]
+            ? [{ value: 'zarinpal', label: 'پرداخت ریالی با درگاه بانکی' }]
+            : [{ value: 'paypal', label: 'پرداخت ارزی با PayPal Business' }]
         }
         value={paymentMethod}
         onChange={setPaymentMethod}
@@ -155,6 +184,11 @@ const PaymentStep = ({ onComplete, onBack }) => {
         disabled={!paymentMethod}>
         ادامه پرداخت
       </Button>
+      {paymentError && (
+        <p role="alert" className="text-sm text-red-600">
+          {paymentError}
+        </p>
+      )}
 
       <Button variant="outline" onClick={onBack}>
         بازگشت

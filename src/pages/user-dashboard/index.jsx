@@ -46,6 +46,7 @@ const subscriptionNames = {
   academy: 'آکادمی',
   pro: 'تکمیلی',
   private: 'خصوصی',
+  'start-by-azi': 'اشتراک Start by Azi',
 };
 
 const UserDashboard = () => {
@@ -59,7 +60,7 @@ const UserDashboard = () => {
   }, []);
   const userId = storedUser?.id;
 
-  const [data, setData] = useState({ client: null, subscription: null, reports: [] });
+  const [data, setData] = useState({ client: null, subscription: null, reports: [], dietPlan: null });
   const [status, setStatus] = useState('loading');
   const [monday, setMonday] = useState(getMondayState);
   const [starting, setStarting] = useState(false);
@@ -67,10 +68,11 @@ const UserDashboard = () => {
   const load = useCallback(async () => {
     if (!userId) return;
     setStatus('loading');
-    const [clientResult, subscriptionResult, reportsResult] = await Promise.allSettled([
+    const [clientResult, subscriptionResult, reportsResult, dietPlanResult] = await Promise.allSettled([
       api.get(`/api/client/${userId}`),
       api.get(`/subscription/active/${userId}`),
       api.get(`/report/my?userId=${userId}`),
+      api.get(`/diet-plans/my/${userId}`),
     ]);
 
     setData({
@@ -86,6 +88,7 @@ const UserDashboard = () => {
         reportsResult.status === 'fulfilled'
           ? reportsResult.value.data?.reports || []
           : [],
+      dietPlan: dietPlanResult.status === 'fulfilled' ? dietPlanResult.value.data?.plan || null : null,
     });
     setStatus('ready');
   }, [storedUser, userId]);
@@ -128,7 +131,8 @@ const UserDashboard = () => {
     );
   }
 
-  const { client, subscription, reports } = data;
+  const { client, subscription, reports, dietPlan } = data;
+  const membershipType = subscription?.productType || client?.subscriptionType;
   const remainingReports = subscription
     ? subscription.remainingReports ?? Math.max(0, subscription.reportLimit - subscription.reportsUsed)
     : 0;
@@ -139,10 +143,51 @@ const UserDashboard = () => {
     (first, second) => new Date(second.date || second.createdAt) - new Date(first.date || first.createdAt),
   );
   const latestFeedback = sortedReports.find((report) => report.coachFeedback?.comment);
+  const isStartByAzi = membershipType === 'start-by-azi';
+  const allStartByAziTasksComplete = isStartByAzi && ['assessment', 'profile', 'measurements', 'weight', 'photos']
+    .every((task) => Boolean(client?.tasks?.[task]));
+  const dietPlanReady = Boolean(dietPlan);
+  const remainingStartByAziTasks = isStartByAzi
+    ? ['assessment', 'profile', 'measurements', 'weight', 'photos'].filter((task) => !client?.tasks?.[task]).length
+    : 0;
+  const nextStartByAziTask = isStartByAzi
+    ? [
+        { key: 'assessment', title: 'فرم ارزیابی اولیه', path: '/user-basic-data?tab=assessment' },
+        { key: 'profile', title: 'پروفایل شخصی', path: '/user-basic-data?tab=profile' },
+        { key: 'measurements', title: 'ثبت سایزها', path: '/progress-report-submission?tab=measurements' },
+        { key: 'weight', title: 'ثبت وزن اولیه', path: '/progress-report-submission?tab=weight' },
+        { key: 'photos', title: 'آپلود عکس اولیه', path: '/progress-report-submission?tab=photos' },
+      ].find((task) => !client?.tasks?.[task.key])
+    : null;
   const isAcademyWaiting = subscription?.productType === 'academy' && !subscription.hasStarted;
   const isExpired = Boolean(subscription?.isExpired);
 
-  const action = isAcademyWaiting
+  const action = isStartByAzi && allStartByAziTasksComplete && dietPlanReady
+    ? {
+        kicker: 'Start by Azi',
+        title: 'اطلاعات اولیه شما کامل شد',
+        description: 'مربی در حال آماده‌سازی رژیم اختصاصی شماست. به‌محض آماده‌شدن، نسخه نهایی در پنل قرار می‌گیرد.',
+        button: 'مشاهده رژیم شخصی',
+        onClick: () => navigate('/diet-plan'),
+      }
+    : isStartByAzi && allStartByAziTasksComplete
+    ? {
+        kicker: 'Start by Azi',
+        title: 'رژیم اختصاصی شما در حال آماده‌سازی است',
+        description: 'اطلاعات اولیه‌تان برای مربی ارسال شده است. به‌محض انتشار برنامه، از همین پنل آن را دریافت می‌کنید.',
+        button: 'رژیم در حال آماده‌سازی است',
+        disabled: true,
+        onClick: () => {},
+      }
+    : isStartByAzi
+    ? {
+        kicker: 'Start by Azi',
+        title: `${nextStartByAziTask?.title || 'اطلاعات اولیه'} را تکمیل کن`,
+        description: `برای آماده‌شدن رژیم اختصاصی، ${fa(remainingStartByAziTasks)} کار دیگر باقی مانده است. از همین مرحله شروع کن.`,
+        button: `رفتن به ${nextStartByAziTask?.title || 'فرم اطلاعات اولیه'}`,
+        onClick: () => navigate(nextStartByAziTask?.path || '/user-basic-data'),
+      }
+    : isAcademyWaiting
     ? {
         kicker: 'آماده‌ای شروع کنی؟',
         title: 'زمان دوره هنوز آغاز نشده است',
@@ -205,7 +250,7 @@ const UserDashboard = () => {
               <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">{action.description}</p>
               <button
                 type="button"
-                disabled={starting}
+                disabled={starting || action.disabled}
                 onClick={action.onClick}
                 className="academy-primary-button mt-8 min-w-48">
                 {starting ? 'در حال شروع…' : action.button}
@@ -219,18 +264,18 @@ const UserDashboard = () => {
               <div>
                 <p className="academy-kicker">وضعیت عضویت</p>
                 <h3 className="mt-2 text-xl font-black">
-                  {subscriptionNames[subscription?.productType] || 'بدون اشتراک فعال'}
+                  {subscriptionNames[membershipType] || 'بدون اشتراک فعال'}
                 </h3>
               </div>
-              <div
+              {!isStartByAzi && <div
                 className="flex h-16 w-16 items-center justify-center rounded-full text-sm font-black text-[#1c2c29]"
                 style={{ background: `conic-gradient(#df6b52 ${reportPercent}%, #e7e2d8 0)` }}>
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fffdf8]">
                   {fa(Math.round(reportPercent))}٪
                 </div>
-              </div>
+              </div>}
             </div>
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            {!isStartByAzi && <div className="mt-6 grid grid-cols-2 gap-3">
               <div className="academy-metric">
                 <p className="text-[10px] font-semibold text-[#7a827e]">روز باقی‌مانده</p>
                 <p className="mt-2 text-2xl font-black">{fa(subscription?.remainingDays ?? '—')}</p>
@@ -239,8 +284,12 @@ const UserDashboard = () => {
                 <p className="text-[10px] font-semibold text-[#7a827e]">گزارش باقی‌مانده</p>
                 <p className="mt-2 text-2xl font-black">{fa(remainingReports)}</p>
               </div>
-            </div>
-            {subscription?.expiresAt && (
+            </div>}
+            {isStartByAzi ? (
+              <p className="mt-5 text-xs font-normal leading-6 text-[#68716d]">
+                در Start by Azi، با توجه به وزن، هدف و شرایط بدنی‌ات یک رژیم اختصاصی و متناسب با مسیر خودت دریافت می‌کنی.
+              </p>
+            ) : subscription?.expiresAt && (
               <div className="mt-4 flex items-center gap-2 text-xs text-[#68716d]">
                 <CalendarDays size={16} />
                 پایان دوره: {new Date(subscription.expiresAt).toLocaleDateString('fa-IR')}
@@ -248,7 +297,7 @@ const UserDashboard = () => {
             )}
           </section>
 
-          <section className="academy-surface p-5 sm:p-7 lg:col-span-2">
+          {subscription?.offlineVideoAccess ? <section className="academy-surface p-5 sm:p-7 lg:col-span-2">
             <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[1.2fr_.8fr]">
               <button
                 type="button"
@@ -292,7 +341,7 @@ const UserDashboard = () => {
                 )}
               </div>
             </div>
-          </section>
+          </section> : <section className="academy-surface p-6 sm:p-7 lg:col-span-2"><p className="academy-kicker">Start by Azi</p><h3 className="mt-2 text-xl font-black">مسیر رژیم شخصی شما</h3><p className="mt-3 max-w-xl text-sm leading-7 text-[#68716d]">{dietPlanReady ? 'رژیم اختصاصی شما آماده است و می‌توانید آن را از پنل دریافت کنید.' : allStartByAziTasksComplete ? 'اطلاعات اولیه کامل است؛ مربی در حال آماده‌سازی رژیم اختصاصی شماست.' : `برای دریافت رژیم اختصاصی، ${fa(remainingStartByAziTasks)} کار باقی‌مانده در چک‌لیست را کامل کنید.`}</p><button type="button" disabled={isStartByAzi && !dietPlanReady} onClick={() => navigate('/diet-plan')} className="academy-primary-button mt-6 disabled:cursor-not-allowed disabled:opacity-45">{dietPlanReady ? 'مشاهده رژیم شخصی' : allStartByAziTasksComplete ? 'رژیم در حال آماده‌سازی است' : 'تکمیل اطلاعات برای دریافت رژیم'}<ArrowLeft size={18}/></button></section>}
 
           <section className="academy-surface p-5 sm:p-7 lg:col-span-2">
             <div className="mb-5 flex items-center justify-between">
@@ -302,7 +351,16 @@ const UserDashboard = () => {
               </div>
               <CheckCircle2 size={22} className="text-[#638176]" />
             </div>
-            <DashboardChecklist />
+            <DashboardChecklist tasks={client?.tasks} />
+            {allStartByAziTasksComplete && (
+              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#638176]/25 bg-[#dce6df]/60 p-4 text-[#29483e]">
+                <CheckCircle2 className="mt-0.5 shrink-0" size={20} />
+                <div>
+                  <p className="text-sm font-black">اطلاعات اولیه شما کامل شد</p>
+                  <p className="mt-1 text-xs leading-6 opacity-80">به‌زودی رژیم اختصاصی شما آماده می‌شود و در همین پنل بارگذاری خواهد شد.</p>
+                </div>
+              </div>
+            )}
           </section>
         </div>
 

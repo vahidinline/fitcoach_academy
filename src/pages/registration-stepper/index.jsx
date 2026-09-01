@@ -11,6 +11,10 @@ import PaymentStep from './components/PaymentStep';
 
 import api from 'api/api';
 import { useAuthStore } from 'store/useAuthStore';
+import { normalizeDigits } from 'utils/persianNumbers';
+
+const getErrorMessage = (error, fallback) =>
+  error.response?.data?.error || error.response?.data?.message || error.message || fallback;
 
 const RegistrationStepper = () => {
   const navigate = useNavigate();
@@ -37,14 +41,36 @@ const RegistrationStepper = () => {
 
   const totalSteps = 6;
 
+  const hasVerifiedBrowserSession = () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const storedUser = JSON.parse(localStorage.getItem('userData') || 'null');
+      return Boolean(token && storedUser?.id && String(storedUser.id) === String(userId));
+    } catch {
+      return false;
+    }
+  };
+
+  const isRegistrationVerified = isVerified && hasVerifiedBrowserSession();
+
   // ---------------------------------
   // Handle Next & Back
   // ---------------------------------
   const handleNext = () => {
+    // A verified user may freely change the selected product without seeing OTP again.
+    if (currentStep === 3 && isRegistrationVerified) {
+      setCurrentStep(6);
+      return;
+    }
     if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
   };
 
   const handleBack = () => {
+    // Do not send an already verified user back to the OTP screen from payment.
+    if (currentStep === 6 && isRegistrationVerified) {
+      setCurrentStep(3);
+      return;
+    }
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
@@ -70,6 +96,7 @@ const RegistrationStepper = () => {
       },
       selectedServicePrice: svc.price,
       selectedServiceRialPrice: svc.priceRial,
+      selectedServiceLaunchOffer: svc.launchOffer || null,
     });
   };
 
@@ -78,30 +105,32 @@ const RegistrationStepper = () => {
   // ---------------------------------
   const handleVerificationComplete = async () => {
     setLoading(true);
+    setError('');
 
     try {
-      const res = await fetch(
-        'https://aziserver.azurewebsites.net/academyAuth/verify-otp',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: contactInfo,
-            otp: verificationCode,
-          }),
-        }
-      );
+      const data = (await api.post('/academyAuth/verify-otp', {
+        ...(selectedAuthMethod === 'email' ? { email: contactInfo } : { phone: normalizeDigits(contactInfo).replace(/[\s-]/g, '') }),
+        otp: normalizeDigits(verificationCode).replace(/\D/g, ''),
+      })).data;
 
-      const data = await res.json();
+      if (data.status === 'ok' && data.token && data.userData?.id) {
+        // Keep the verified session in this browser exactly like the regular login flow.
+        // This lets the person return to product selection without requesting another OTP.
+        const authenticatedUser = { ...data.userData, token: data.token };
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(authenticatedUser));
 
-      if (data.status === 'ok') {
-        updateFields({ isVerified: true, userId: data.userData.id });
+        updateFields({
+          isVerified: true,
+          userId: data.userData.id,
+          verificationCode: '',
+        });
         handleNext();
       } else {
         setError(data.error || 'کد تایید اشتباه است');
       }
     } catch (err) {
-      setError('خطای سرور در تایید کد');
+      setError(getErrorMessage(err, 'خطای سرور در تایید کد'));
     }
 
     setLoading(false);
@@ -112,24 +141,19 @@ const RegistrationStepper = () => {
   // ---------------------------------
   const handleSendOtp = async (value) => {
     setLoading(true);
+    setError('');
+    const normalizedValue = selectedAuthMethod === 'sms'
+      ? normalizeDigits(value).replace(/[\s-]/g, '')
+      : value.trim().toLowerCase();
 
     try {
-      const res = await fetch(
-        'https://aziserver.azurewebsites.net/academyAuth/auth',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            method: selectedAuthMethod,
-            email: selectedAuthMethod === 'email' ? value : undefined,
-            phoneNumber: selectedAuthMethod === 'sms' ? value : undefined,
-            location: selectedLocation,
-            platform: 'web',
-          }),
-        }
-      );
-
-      const data = await res.json();
+      const data = (await api.post('/academyAuth/auth', {
+        method: selectedAuthMethod,
+        email: selectedAuthMethod === 'email' ? normalizedValue : undefined,
+        phoneNumber: selectedAuthMethod === 'sms' ? normalizedValue : undefined,
+        location: selectedLocation,
+        platform: 'web',
+      })).data;
 
       if (data.status === 'ok') {
         updateFields({ userId: data.userId });
@@ -138,7 +162,7 @@ const RegistrationStepper = () => {
         setError(data.error || 'مشکلی پیش آمده است');
       }
     } catch (err) {
-      setError('خطا در ارسال کد');
+      setError(getErrorMessage(err, 'خطا در ارسال کد پیامکی'));
     }
 
     setLoading(false);
@@ -159,8 +183,7 @@ const RegistrationStepper = () => {
       return { url: res.data.url };
     }
 
-    // stripe
-    const res = await api.post('/api/stripe/create-session', {
+    const res = await api.post('/api/paypal/create-order', {
       amount: paymentResult.amountUSD,
       userId,
       productType: selectedServiceName.code,
@@ -185,13 +208,22 @@ const RegistrationStepper = () => {
   }, []);
 
   // ---------------------------------
-  // Jump to Payment if already verified
+  // Resume a partially completed registration from the payment step only when
+  // the matching browser session is still available.
   // ---------------------------------
   useEffect(() => {
-    if (isVerified) {
+    if (isRegistrationVerified && selectedService && selectedLocation) {
       setCurrentStep(6);
     }
-  }, []);
+  }, [isRegistrationVerified, selectedLocation, selectedService]);
+
+  // Guard against a stale navigation state exposing the OTP screen after a
+  // successful verification.
+  useEffect(() => {
+    if (isRegistrationVerified && (currentStep === 4 || currentStep === 5)) {
+      setCurrentStep(selectedService && selectedLocation ? 6 : 3);
+    }
+  }, [currentStep, isRegistrationVerified, selectedLocation, selectedService]);
 
   // ---------------------------------
   // Render Step
