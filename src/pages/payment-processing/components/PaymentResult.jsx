@@ -1,65 +1,35 @@
-import React, { useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import gsap from 'gsap';
-import { CheckCircle, XCircle } from 'lucide-react';
-
-const PaymentResult = () => {
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import api from 'api/api';
+export default function PaymentResult() {
   const [params] = useSearchParams();
-  const status = params.get('status'); // success | failed
-  const navigate = useNavigate();
-  const cardRef = useRef(null);
-
+  const authority = params.get('authority');
+  const [state, setState] = useState('loading');
+  const [refId, setRefId] = useState('');
   useEffect(() => {
-    gsap.from(cardRef.current, {
-      y: 40,
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-    });
-  }, []);
-
-  const isSuccess = status === 'success';
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black text-white px-6">
-      <div
-        ref={cardRef}
-        className="
-          backdrop-blur-xl bg-white/10 border border-white/20
-          shadow-2xl rounded-2xl p-8 w-full max-w-md text-center
-        ">
-        {isSuccess ? (
-          <>
-            <CheckCircle className="text-green-400 mx-auto" size={80} />
-            <h1 className="text-2xl font-bold mt-4">
-              پرداخت با موفقیت انجام شد
-            </h1>
-            <p className="text-gray-300 mt-2">اشتراک شما فعال شد.</p>
-
-            <button
-              onClick={() => navigate('/login')}
-              className="mt-6 w-full py-3 rounded-xl bg-green-500 hover:bg-green-600 transition text-lg font-bold">
-              ورود به حساب
-            </button>
-          </>
-        ) : (
-          <>
-            <XCircle className="text-red-400 mx-auto" size={80} />
-            <h1 className="text-2xl font-bold mt-4">پرداخت ناموفق بود</h1>
-            <p className="text-gray-300 mt-2">
-              مشکلی در فرایند پرداخت رخ داد. لطفاً دوباره تلاش کنید.
-            </p>
-
-            <button
-              onClick={() => navigate('/register')}
-              className="mt-6 w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 transition text-lg font-bold">
-              تلاش دوباره
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default PaymentResult;
+    let active = true;
+    setState('loading');
+    if (!authority) { setState('unknown'); return; }
+    api.get(`/api/zarinpal/status/${encodeURIComponent(authority)}`)
+      .then(({ data }) => { if (active) { setState(data.status); setRefId(data.refId || ''); } })
+      .catch(() => { if (active) setState('unknown'); });
+    return () => { active = false; };
+  }, [authority]);
+  const success = state === 'completed';
+  const retry = () => {
+    const url = new URL('/api/zarinpal/callback', api.defaults.baseURL);
+    url.searchParams.set('Authority', authority);
+    url.searchParams.set('Status', 'OK');
+    window.location.assign(url.href);
+  };
+  return <main dir="rtl" className="min-h-screen grid place-items-center bg-gray-900 text-white p-6">
+    <section className="max-w-md w-full bg-gray-800 rounded-2xl p-8 text-center space-y-5" aria-live="polite">
+      <h1 className="text-2xl font-bold">{state === 'loading' ? 'در حال استعلام پرداخت…' : success ? 'پرداخت با موفقیت انجام شد' : state === 'failed' ? 'پرداخت ناموفق بود' : 'پرداخت هنوز تأیید نشده است'}</h1>
+      {success ? <><p>اشتراک شما ثبت شد.</p>{refId && <p>کد پیگیری: {refId}</p>}<Link className="block text-green-300" to="/user-dashboard">ورود به حساب</Link></> : state !== 'loading' && <>
+        <p>ممکن است پرداخت لغو شده باشد یا تأیید آن کامل نشده باشد. اگر مبلغ کسر شده، دوباره پرداخت نکنید؛ ابتدا بررسی مجدد را بزنید و در صورت تداوم مشکل با پشتیبانی تماس بگیرید.</p>
+        {authority && <><p className="break-all text-sm">شناسه پرداخت: {authority}</p><button className="w-full rounded-xl bg-orange-600 p-3" onClick={retry}>بررسی مجدد پرداخت</button></>}
+        <Link className="block text-gray-300" to="/register">بازگشت به ثبت‌نام</Link>
+      </>}
+    </section>
+  </main>;
+}

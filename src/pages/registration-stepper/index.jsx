@@ -174,7 +174,7 @@ const RegistrationStepper = () => {
   const handlePaymentComplete = async (paymentResult) => {
     if (selectedLocation === 'iran') {
       const res = await api.post('/api/zarinpal/pay', {
-        amount: paymentResult.amountRial,
+        expectedAmount: paymentResult.amountRial,
         userId,
         productType: selectedServiceName.code,
         discountCode: paymentResult.discountCode,
@@ -184,7 +184,7 @@ const RegistrationStepper = () => {
     }
 
     const res = await api.post('/api/paypal/create-order', {
-      amount: paymentResult.amountUSD,
+      expectedAmount: paymentResult.amountUSD,
       userId,
       productType: selectedServiceName.code,
       discountCode: paymentResult.discountCode,

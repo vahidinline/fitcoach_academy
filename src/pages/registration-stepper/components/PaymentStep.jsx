@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
@@ -19,7 +19,8 @@ const PaymentStep = ({ onComplete, onBack }) => {
     selectedLocation === 'iran'
       ? selectedServiceRialPrice.price
       : selectedServicePrice.price;
-  const launchAvailable =
+  const launchPrice = selectedLocation === 'iran' ? selectedServiceLaunchOffer?.iranPrice : selectedServiceLaunchOffer?.euroPrice;
+  const launchAvailable = Number(launchPrice) > 0 &&
     selectedServiceLaunchOffer?.enabled &&
     Number(selectedServiceLaunchOffer?.reserved || 0) <
       Number(selectedServiceLaunchOffer?.maxReservations || 0);
@@ -35,34 +36,50 @@ const PaymentStep = ({ onComplete, onBack }) => {
 
   // ---- Discount states ----
   const [discountCode, setDiscountCode] = useState('');
+  const [appliedCode, setAppliedCode] = useState('');
+  const [validating, setValidating] = useState(false);
+  const discountRequest = useRef(0);
+  const paymentBusy = useRef(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountError, setDiscountError] = useState('');
   const [discountSuccess, setDiscountSuccess] = useState('');
   const [finalPrice, setFinalPrice] = useState(basePrice);
 
   useEffect(() => {
+    discountRequest.current += 1;
     setFinalPrice(basePrice);
-  }, [basePrice]);
+    setAppliedCode('');
+    setDiscountPercent(0);
+    setDiscountSuccess('');
+    setDiscountError('');
+    setValidating(false);
+  }, [basePrice, selectedLocation, selectedServiceName.code]);
 
   // ----------------------
   // APPLY DISCOUNT
   // ----------------------
   const handleApplyDiscount = async () => {
+    const requestId = ++discountRequest.current;
     setDiscountError('');
     setDiscountSuccess('');
+    setAppliedCode('');
+    setDiscountPercent(0);
+    setFinalPrice(basePrice);
 
     if (!discountCode) {
       setDiscountError('کد تخفیف را وارد کنید');
       return;
     }
 
+    setValidating(true);
     try {
       const res = await api.post('/api/discount/validate', {
         code: discountCode,
         productType: selectedServiceName.code,
-        baseAmount: basePrice,
+        currency: selectedLocation === 'iran' ? 'IRR' : 'EUR',
       });
 
+      if (requestId !== discountRequest.current) return;
       const data = res.data;
 
       if (!data.valid) {
@@ -72,19 +89,24 @@ const PaymentStep = ({ onComplete, onBack }) => {
         return;
       }
 
+      setAppliedCode(discountCode.trim().toUpperCase());
       // Apply backend values
-      setDiscountPercent(data.discount.value);
+      setDiscountPercent(data.discount.type === 'percent' ? data.discount.value : 0);
       setFinalPrice(data.finalPrice);
-      setDiscountSuccess(`${data.discount.value}% تخفیف اعمال شد`);
+      setDiscountSuccess(`تخفیف اعمال شد؛ مبلغ نهایی را بررسی کنید.`);
     } catch (err) {
-      setDiscountError('کد تخفیف معتبر نیست');
-    }
+      if (requestId !== discountRequest.current) return;
+      setDiscountError(err.response?.data?.message || 'استعلام تخفیف انجام نشد؛ دوباره تلاش کنید.');
+    } finally { if (requestId === discountRequest.current) setValidating(false); }
   };
 
   // ----------------------
   // PAYMENT FINALIZE
   // ----------------------
   const handlePayment = async () => {
+    if (paymentBusy.current || validating) return;
+    if (discountCode.trim() && appliedCode !== discountCode.trim().toUpperCase()) { setPaymentError('ابتدا کد تخفیف را اعمال یا از کادر حذف کنید.'); return; }
+    paymentBusy.current = true;
     try {
       setIsProcessing(true);
       setPaymentError('');
@@ -93,7 +115,7 @@ const PaymentStep = ({ onComplete, onBack }) => {
         amountRial: selectedLocation === 'iran' ? finalPrice : null,
         amountUSD: selectedLocation !== 'iran' ? finalPrice : null,
         method: paymentMethod,
-        discountCode,
+        discountCode: appliedCode,
         discountPercent,
       });
 
@@ -110,6 +132,7 @@ const PaymentStep = ({ onComplete, onBack }) => {
           'شروع پرداخت انجام نشد. لطفاً دوباره تلاش کنید.',
       );
     } finally {
+      paymentBusy.current = false;
       setIsProcessing(false);
     }
   };
@@ -151,9 +174,10 @@ const PaymentStep = ({ onComplete, onBack }) => {
         <Input
           label="کد تخفیف"
           value={discountCode}
-          onChange={(e) => setDiscountCode(e.target.value)}
+          disabled={isProcessing}
+          onChange={(e) => { discountRequest.current += 1; setValidating(false); setAppliedCode(''); setDiscountCode(e.target.value); setDiscountPercent(0); setFinalPrice(basePrice); setDiscountSuccess(''); setDiscountError(''); setPaymentError(''); }}
         />
-        <Button variant="outline" onClick={handleApplyDiscount}>
+        <Button variant="outline" disabled={validating || isProcessing} onClick={handleApplyDiscount}>
           اعمال کد تخفیف
         </Button>
 
@@ -181,7 +205,7 @@ const PaymentStep = ({ onComplete, onBack }) => {
         variant="default"
         onClick={handlePayment}
         loading={isProcessing}
-        disabled={!paymentMethod}>
+        disabled={!paymentMethod || validating || isProcessing || (Boolean(discountCode.trim()) && appliedCode !== discountCode.trim().toUpperCase())}>
         ادامه پرداخت
       </Button>
       {paymentError && (
@@ -190,7 +214,7 @@ const PaymentStep = ({ onComplete, onBack }) => {
         </p>
       )}
 
-      <Button variant="outline" onClick={onBack}>
+      <Button variant="outline" disabled={isProcessing} onClick={onBack}>
         بازگشت
       </Button>
     </div>
