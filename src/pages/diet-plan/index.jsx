@@ -10,7 +10,7 @@ export default function DietPlan() {
   const [state, setState] = useState({ loading: true, plan: null, error: '' });
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
-  useEffect(() => { const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id; if (!userId) return setState({ loading: false, plan: null, error: 'برای مشاهده رژیم وارد شوید.' }); api.get(`/diet-plans/my/${userId}`).then(({ data }) => setState({ loading: false, plan: data.plan, error: '' })).catch((error) => setState({ loading: false, plan: null, error: error.response?.data?.message || 'دریافت رژیم انجام نشد.' })); }, []);
+  useEffect(() => { const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id; if (!userId) return setState({ loading: false, plan: null, error: 'برای مشاهده رژیم وارد شوید.' }); api.get(`/diet-plans/my/${userId}?refresh=${Date.now()}`).then(({ data }) => setState({ loading: false, plan: data.plan, error: '' })).catch((error) => setState({ loading: false, plan: null, error: error.response?.data?.message || 'دریافت رژیم انجام نشد.' })); }, []);
   const requestPdf = async () => {
     const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
     if (!userId) return setPdfError('برای دریافت فایل وارد شوید.');

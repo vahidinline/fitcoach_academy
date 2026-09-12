@@ -31,7 +31,7 @@ const BottomTabNavigation = () => {
   useEffect(() => {
     const userId = JSON.parse(localStorage.getItem('userData') || '{}')?.id;
     if (!userId) return;
-    Promise.allSettled([api.get(`/subscription/active/${userId}`), api.get(`/api/client/${userId}`), api.get(`/diet-plans/my/${userId}`)])
+    Promise.allSettled([api.get(`/subscription/active/${userId}`), api.get(`/api/client/${userId}`), api.get(`/diet-plans/my/${userId}?refresh=${Date.now()}`)])
       .then(([subscriptionResult, clientResult, dietPlanResult]) => {
         const type = subscriptionResult.status === 'fulfilled' ? subscriptionResult.value.data.subscription?.productType : null;
         const tasks = clientResult.status === 'fulfilled' ? clientResult.value.data?.tasks : null;

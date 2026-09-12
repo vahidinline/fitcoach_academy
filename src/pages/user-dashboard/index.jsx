@@ -72,7 +72,7 @@ const UserDashboard = () => {
       api.get(`/api/client/${userId}`),
       api.get(`/subscription/active/${userId}`),
       api.get(`/report/my?userId=${userId}`),
-      api.get(`/diet-plans/my/${userId}`),
+      api.get(`/diet-plans/my/${userId}?refresh=${Date.now()}`),
     ]);
 
     setData({
