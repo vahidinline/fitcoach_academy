@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import api from 'api/api';
 import ExtraPhotosUpload from './ExtraPhotosUpload';
 import ReportQuota from './ReportQuota';
-import { useNavigate } from 'react-router-dom';
 import { normalizeDigits } from 'utils/persianNumbers';
 import { validateReport } from 'utils/reportValidation';
 import { canSubmitToday } from 'utils/canSubmitReport';
@@ -24,6 +23,7 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [createdReport, setCreatedReport] = useState(null);
+  const [submittedSuccessfully, setSubmittedSuccessfully] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [reportPermission, setReportPermission] = useState(null);
   const [remaining, setRemaining] = useState(null);
@@ -33,7 +33,6 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
   const [permissionLoading, setPermissionLoading] = useState(isMonday);
   const [errors, setErrors] = useState({});
   const [uploadsPending, setUploadsPending] = useState(false);
-  const navigate = useNavigate();
   const [fields, setFields] = useState({
     avgCalories: '',
     proteinPercent: 30,
@@ -100,7 +99,8 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
       const res = await api.post('/report', payload);
 
       setCreatedReport(res.data.report); // ذخیره گزارش برای نمایش
-      setSuccessMessage('گزارش شما با موفقیت ثبت شد');
+      setSubmittedSuccessfully(true);
+      setSuccessMessage('گزارشتان با موفقیت ارسال شد. پیش‌نمایش آن را پایین‌تر می‌بینید.');
 
       // پاک کردن فرم
       setFields({
@@ -114,8 +114,10 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
         note: '',
       });
       setExtraPhotos([]);
-      await loadSubscription();
-      navigate('/progress-report-submission?tab=notes');
+      // Do not refresh the permission gate or navigate away here. A successful
+      // submission makes the next permission check return "already submitted",
+      // which must not replace this success state with an error message.
+      setRemaining(res.data.remainingReports ?? 0);
     } catch (err) {
       const message = err.response?.data?.error || err.response?.data?.message;
       setSuccessMessage(`❌ ${message || 'مشکلی در ارسال گزارش پیش آمد. دوباره تلاش کنید.'}`);
@@ -191,7 +193,7 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
     return <div className="flex min-h-[24rem] items-center justify-center"><div className="text-center"><span className="mx-auto block h-9 w-9 animate-spin rounded-full border-2 border-[#1c2c29]/15 border-t-[#df6b52]" /><p className="mt-4 text-sm font-bold text-[#66736e]">در حال بررسی امکان ارسال گزارش…</p></div></div>;
   }
 
-  if (reportPermission?.allowed !== true) {
+  if (reportPermission?.allowed !== true && !submittedSuccessfully) {
     return (
       <section className="flex min-h-[24rem] flex-col items-center justify-center rounded-[28px] border border-[#e4b8ae] bg-[#fff2ef] px-5 py-10 text-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#b84f3a] shadow-sm"><ShieldAlert size={28} /></span>
@@ -326,9 +328,9 @@ const CalorieTrackingSection = ({ submissionWindowOpen }) => {
           {successMessage}
         </div>
       )}
-      {createdReport && (
+      {createdReport && submittedSuccessfully && (
         <div className="p-4 bg-white rounded-xl shadow space-y-3 mt-4">
-          <h3 className="font-bold text-lg">📄 گزارش ثبت‌شده</h3>
+          <h3 className="font-bold text-lg">گزارش ارسال‌شده</h3>
 
           <p>
             نوع گزارش: {createdReport.type === 'weekly' ? 'هفتگی' : 'ماهانه'}
