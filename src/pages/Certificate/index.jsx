@@ -14,6 +14,7 @@ export default function CertificateIndex({ endpoint }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [step, setStep] = useState(1);
   const [type, setType] = React.useState(null);
+  const [paymentState, setPaymentState] = useState({ id: null, loading: false, error: '' });
   const {
     selectedUserType,
     selectedAuthMethod,
@@ -74,6 +75,7 @@ export default function CertificateIndex({ endpoint }) {
   };
 
   const handlePaymentComplete = async (cert) => {
+    setPaymentState({ id: cert._id, loading: true, error: '' });
     try {
       const res = await api.post('/zarinpal/rial', {
         amount: cert.certificateType === 'Nutrition' ? 5000000 : 1000000,
@@ -87,6 +89,11 @@ export default function CertificateIndex({ endpoint }) {
       if (res?.data?.url) window.location.href = res.data.url;
     } catch (err) {
       console.error('Payment error:', err);
+      setPaymentState({
+        id: cert._id,
+        loading: false,
+        error: err.response?.data?.message || err.message || 'اتصال به درگاه پرداخت برقرار نشد.',
+      });
     }
   };
 
@@ -169,13 +176,15 @@ export default function CertificateIndex({ endpoint }) {
                     {['pending', 'waitingForPayment'].includes(cert.certificateStatus) && (
                       <div className="flex flex-col gap-2">
                         <button
+                          disabled={paymentState.loading}
                           onClick={() =>
                             handlePaymentComplete(cert)
                           }
                           className="btn btn-primary">
-                          پرداخت هزینه صدور گواهی{' '}
+                          {paymentState.loading && paymentState.id === cert._id ? 'در حال انتقال به درگاه...' : 'پرداخت هزینه صدور گواهی '}
                           {getCertRialPrice(cert.certificateType)}
                         </button>
+                        {paymentState.id === cert._id && paymentState.error && <p className="mt-2 text-sm text-red-600">{paymentState.error}</p>}
                       </div>
                     )}
                     {cert.certificateStatus === 'issued' && (
