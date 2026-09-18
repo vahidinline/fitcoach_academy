@@ -6,12 +6,13 @@ export default function FailedModal({
   formatCountdown,
   handleRetry,
   canRetry,
+  failedAttempts = 2,
 }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 max-w-lg text-center">
         <h2 className="text-2xl font-semibold mb-4">
-          شما ۲ بار تلاش کردید و موفق نشدید
+          تلاش {failedAttempts} شما با موفقیت همراه نبود
         </h2>
         {banTimeLeft > 0 ? (
           <p className="mb-4 text-red-600">
@@ -20,6 +21,11 @@ export default function FailedModal({
         ) : (
           <p className="mb-4 text-green-600">
             مدت محرومیت شما تمام شده است، می‌توانید دوباره امتحان دهید.
+          </p>
+        )}
+        {failedAttempts >= 2 && (
+          <p className="mb-5 rounded-2xl bg-amber-50 p-4 text-right text-sm leading-7 text-amber-800">
+            برای شرکت مجدد، لطفاً ویدیوهای دوره را دوباره با دقت مشاهده کنید و سپس بعد از پایان محرومیت ۱۴ روزه آزمون دهید.
           </p>
         )}
 

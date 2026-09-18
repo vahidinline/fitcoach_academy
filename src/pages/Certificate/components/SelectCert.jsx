@@ -1,4 +1,3 @@
-import ContextualHeader from 'components/ui/ContextualHeader';
 import React from 'react';
 import CertificateForm from './Request-for-cert';
 import CertTemp from '../../../assets/img/CertTemplate.png';
@@ -36,8 +35,7 @@ function SelectCert({ clientId, handleSelect, type }) {
 
   return (
     <div dir="rtl" className="w-full">
-      <div className="min-h-screen bg-background">
-        <ContextualHeader />
+      <div className="w-full">
         {!type ? (
           <div className="flex flex-col ">
             <div className="card-title text-gray-500">

@@ -49,9 +49,14 @@ export default function CertificateIndex({ endpoint }) {
       try {
         const res = await api.get(`/certificate/${clientId}`);
 
-        setCertificateData(res.data);
+        setCertificateData(Array.isArray(res.data) ? res.data : []);
         setStatus('success');
       } catch (error) {
+        if (error.response?.status === 404) {
+          setCertificateData([]);
+          setStatus('success');
+          return;
+        }
         console.error('Error fetching certificate:', error);
         setStatus('error');
         setErrorMsg('خطا در دریافت سرتیفیکت.');
@@ -68,15 +73,14 @@ export default function CertificateIndex({ endpoint }) {
     // Here you can add the logic to handle the certificate selection
   };
 
-  const handlePaymentComplete = async (price) => {
-    console.log('paymentResult', price);
+  const handlePaymentComplete = async (cert) => {
     try {
       const res = await api.post('/zarinpal/rial', {
-        amount: price,
-        userId,
-        name: certificateData.name,
-        contact: contactInfo,
-        product: 'Certificate_' + type,
+        amount: cert.certificateType === 'Nutrition' ? 5000000 : 1000000,
+        userId: clientId || userId,
+        name: cert.clientName,
+        contact: contactInfo || JSON.parse(localStorage.getItem('userData') || '{}').phoneNumber || '',
+        product: 'Certificate_' + cert.certificateType,
         location: '',
       });
       console.log(res);
@@ -162,15 +166,11 @@ export default function CertificateIndex({ endpoint }) {
                   <h2 className="card-title">{cert.clientName}</h2>
                   <p>وضعیت گواهی: {getCertStatus(cert.certificateStatus)}</p>
                   <div className="card-actions justify-end">
-                    {cert.certificateStatus === 'waitingForPayment' && (
+                    {['pending', 'waitingForPayment'].includes(cert.certificateStatus) && (
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() =>
-                            handlePaymentComplete(
-                              cert.certificateType === 'Nutrition'
-                                ? 5000000
-                                : 1000000
-                            )
+                            handlePaymentComplete(cert)
                           }
                           className="btn btn-primary">
                           پرداخت هزینه صدور گواهی{' '}
@@ -190,31 +190,21 @@ export default function CertificateIndex({ endpoint }) {
           </div>
           {status === 'error' && <p className="text-red-600">{errorMsg}</p>}
 
-          {!certificateData && status === 'success' && (
-            <div className="card bg-base-100 image-full w-96 shadow-sm">
-              <figure>
-                <img src={CertTemp} alt="cert" />
-              </figure>
-              <div className="card-body">
-                <h2 className="card-title">{certificateData.clientName}</h2>
-                <p>درخواست سرتیفیکت شما در حال بررسی می باشد</p>
-                {certificateData.certificateStatus}
-                <div className="card-actions justify-end">
-                  <button className="btn btn-primary">
-                    پرداخت هزینه صدور گواهی {certificateData._id}
-                  </button>
-                </div>
-              </div>
+          {Array.isArray(certificateData) && certificateData.length === 0 && status === 'success' && (
+            <div className="mb-5 rounded-2xl border border-[#dce4db] bg-[#f7faf5] p-5 text-sm leading-7 text-[#547466]">
+              هنوز درخواستی برای گواهی ثبت نشده است. نوع گواهی مورد نظر خود را انتخاب کنید.
             </div>
           )}
-          <div className="academy-surface mt-5 p-5 text-[#547466]">
-            <SelectCert
-              handleSelect={handleSelect}
-              clientId={clientId}
-              setType={setType}
-              type={type}
-            />
-          </div>
+          {(!certificateData || certificateData.length === 0) && (
+            <div className="academy-surface mt-5 p-5 text-[#547466]">
+              <SelectCert
+                handleSelect={handleSelect}
+                clientId={clientId}
+                setType={setType}
+                type={type}
+              />
+            </div>
+          )}
         </div>
       </main>
       <BottomTabNavigation />

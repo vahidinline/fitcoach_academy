@@ -11,6 +11,18 @@ const healthFields = [
   { key: 'dietaryRestrictions', label: 'پرهیزها و ملاحظات غذایی', placeholder: 'مانند گیاه‌خواری، پرهیز مذهبی، غذاهای ممنوع یا رژیم تجویزشده توسط پزشک.' },
 ];
 
+const dietaryStyles = [
+  { value: 'omnivore', label: 'همه‌چیزخوار', note: 'محدودیت سبک غذایی ندارم' },
+  { value: 'vegetarian', label: 'گیاه‌خوار', note: 'بدون گوشت، مرغ و ماهی' },
+  { value: 'vegan', label: 'وگن', note: 'بدون هر نوع فرآورده حیوانی' },
+  { value: 'pescatarian', label: 'ماهی‌خوار', note: 'بدون گوشت قرمز و مرغ' },
+];
+
+const avoidances = [
+  ['red-meat', 'گوشت قرمز'], ['poultry', 'مرغ و گوشت سفید'], ['seafood', 'ماهی و غذاهای دریایی'],
+  ['dairy', 'لبنیات'], ['eggs', 'تخم‌مرغ'], ['gluten', 'گلوتن و گندم'],
+];
+
 export default function StepHealth({ data, setData }) {
   const hasStoredDetails = healthFields.some(({ key, legacyKey }) => Boolean(data[key] || (legacyKey && data[legacyKey]))) || Boolean(data.healthNotes);
   const declaredValue = hasStoredDetails ? true : Object.prototype.hasOwnProperty.call(data, 'hasHealthConsiderations') ? data.hasHealthConsiderations : '';
@@ -21,6 +33,13 @@ export default function StepHealth({ data, setData }) {
     healthFields.forEach(({ key }) => { cleared[key] = ''; });
     setData(cleared);
   };
+  const selectedAvoidances = Array.isArray(data.foodAvoidances) ? data.foodAvoidances : [];
+  const toggleAvoidance = (value) => setData({
+    ...data,
+    foodAvoidances: selectedAvoidances.includes(value)
+      ? selectedAvoidances.filter((item) => item !== value)
+      : [...selectedAvoidances, value],
+  });
 
   return (
     <div className="space-y-6">
@@ -34,13 +53,38 @@ export default function StepHealth({ data, setData }) {
         این اطلاعات محرمانه و صرفاً برای شخصی‌سازی برنامه استفاده می‌شود. این فرم جایگزین تشخیص یا توصیه پزشک نیست.
       </div>
 
+      <section className="rounded-[24px] border border-[#e2ded5] bg-[#fbfaf6] p-4 sm:p-5">
+        <div>
+          <h4 className="text-sm font-black text-[#1c2c29]">الگوی غذایی شما</h4>
+          <p className="mt-1 text-xs leading-6 text-[#66736e]">این انتخاب مستقیماً در ساخت رژیم شما لحاظ می‌شود.</p>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {dietaryStyles.map((style) => {
+            const selected = data.dietaryStyle === style.value;
+            return <button key={style.value} type="button" onClick={() => setData({ ...data, dietaryStyle: style.value })} className={`rounded-2xl border p-3 text-right transition ${selected ? 'border-[#df6b52] bg-[#fff4ef] ring-2 ring-[#df6b52]/15' : 'border-[#dedad1] bg-white hover:border-[#c7bcb2]'}`} aria-pressed={selected}>
+              <span className="block text-sm font-black text-[#1c2c29]">{style.label}</span><span className="mt-1 block text-[11px] leading-5 text-[#68716d]">{style.note}</span>
+            </button>;
+          })}
+        </div>
+      </section>
+
+      <section className="rounded-[24px] border border-[#e2ded5] bg-white p-4 sm:p-5">
+        <h4 className="text-sm font-black text-[#1c2c29]">چه چیزهایی را نمی‌خورید یا می‌خواهید حذف شوند؟</h4>
+        <p className="mt-1 text-xs leading-6 text-[#66736e]">هر تعداد گزینه که لازم است انتخاب کنید؛ حتی اگر با الگوی غذایی بالا هم‌پوشانی دارد.</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {avoidances.map(([value, label]) => <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-sm font-bold transition ${selectedAvoidances.includes(value) ? 'border-[#df6b52] bg-[#fff4ef] text-[#9d442f]' : 'border-[#e2ded5] text-[#52605b]'}`}>
+            <input type="checkbox" checked={selectedAvoidances.includes(value)} onChange={() => toggleAvoidance(value)} className="h-4 w-4 accent-[#df6b52]" />{label}
+          </label>)}
+        </div>
+      </section>
+
       <Select
-        label="آیا بیماری، دارو، محدودیت جسمی یا ملاحظه غذایی خاصی دارید؟"
+        label="آیا بیماری، دارو یا محدودیت جسمی دیگری دارید؟"
         placeholder="یکی را انتخاب کنید"
         value={declaredValue}
         onChange={updateDeclaration}
         options={[
-          { value: false, label: 'خیر، مورد خاصی ندارم' },
+          { value: false, label: 'خیر، مورد دیگری ندارم' },
           { value: true, label: 'بله، لازم است توضیح بدهم' },
         ]}
       />

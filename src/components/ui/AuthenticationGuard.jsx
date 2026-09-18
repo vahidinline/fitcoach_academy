@@ -26,6 +26,8 @@ const AuthenticationGuard = ({ children }) => {
     '/training-video-player',
     '/progress-report-submission',
     '/payment-processing',
+    '/quiz',
+    '/dashboard/quiz',
   ];
 
   useEffect(() => {

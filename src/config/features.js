@@ -2,6 +2,6 @@
 // both navigation access and its route without touching the feature code.
 export const academyFeatures = Object.freeze({
   paymentHistory: false,
-  courseQuiz: false,
-  courseCertificate: false,
+  courseQuiz: true,
+  courseCertificate: true,
 });

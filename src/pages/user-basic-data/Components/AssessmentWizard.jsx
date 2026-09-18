@@ -54,6 +54,10 @@ export default function AssessmentWizard() {
 
   const next = () => {
     if (step === 3) {
+      if (!form.dietaryStyle) {
+        alert('لطفاً الگوی غذایی خود را انتخاب کنید تا رژیم متناسب با آن تنظیم شود.');
+        return;
+      }
       const hasDeclaration = Object.prototype.hasOwnProperty.call(form, 'hasHealthConsiderations');
       const hasHealthDetails = ['medicalConditions', 'medications', 'physicalLimitations', 'disabilities', 'foodAllergies', 'dietaryRestrictions', 'healthNotes', 'illness', 'medication', 'pain']
         .some((field) => typeof form[field] === 'string' && form[field].trim());

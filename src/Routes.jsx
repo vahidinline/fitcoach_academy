@@ -37,6 +37,7 @@ const Routes = () => {
             {/* Define your routes here */}
             <Route path="/" element={<LoginIndex />} />
             <Route path="/quiz" element={featureRoute(academyFeatures.courseQuiz, <Quiz />)} />
+            <Route path="/dashboard/quiz" element={<Navigate to="/quiz" replace />} />
             <Route path="/callback" element={<CallbackRial />} />
             <Route path="/login" element={<LoginIndex />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
